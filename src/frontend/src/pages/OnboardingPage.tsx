@@ -1,34 +1,28 @@
 import { useState } from 'react';
 import { useNavigate } from '@tanstack/react-router';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Button } from '@/components/ui/button';
+import { Loader2 } from 'lucide-react';
 import { useSaveCallerUserProfile } from '../api/profile';
 import { useInternetIdentity } from '../hooks/useInternetIdentity';
-import { ROUTES } from '../app/routes';
 import { toast } from 'sonner';
+import { ROUTES } from '../app/routes';
 
 export default function OnboardingPage() {
-  const { identity } = useInternetIdentity();
-  const navigate = useNavigate();
-  const saveProfile = useSaveCallerUserProfile();
-
-  const [campus, setCampus] = useState('SRM-KTR');
+  const [campus, setCampus] = useState('');
   const [hostel, setHostel] = useState('');
   const [department, setDepartment] = useState('');
+  const navigate = useNavigate();
+  const saveProfile = useSaveCallerUserProfile();
+  const { identity } = useInternetIdentity();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!identity) {
       toast.error('Not authenticated');
-      return;
-    }
-
-    if (!hostel || !department) {
-      toast.error('Please fill in all fields');
       return;
     }
 
@@ -39,65 +33,76 @@ export default function OnboardingPage() {
         hostel,
         department,
         onboarding_complete: true,
+        verified_student: false,
+        star_rating: 0,
+        reliability_score: 0,
+        transaction_count: BigInt(0),
       });
-
-      toast.success('Profile created successfully!');
+      toast.success('Profile created successfully');
       navigate({ to: ROUTES.home });
     } catch (error) {
-      console.error('Failed to save profile:', error);
       toast.error('Failed to save profile');
     }
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-primary/10 via-background to-secondary/10 p-4">
-      <Card className="interactive-glow w-full max-w-md animate-in fade-in zoom-in-95 duration-500">
+    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-background to-muted/20">
+      <Card className="w-full max-w-md interactive-glow">
         <CardHeader>
-          <CardTitle>Complete Your Profile</CardTitle>
-          <CardDescription>Tell us a bit about yourself to get started</CardDescription>
+          <CardTitle className="text-2xl">Welcome to Campus Marketplace</CardTitle>
+          <CardDescription>Let's set up your profile to get started</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="campus">Campus</Label>
-              <Select value={campus} onValueChange={setCampus}>
-                <SelectTrigger id="campus" className="transition-all focus:shadow-glow">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="SRM-KTR">SRM KTR</SelectItem>
-                  <SelectItem value="SRM-RMP">SRM RMP</SelectItem>
-                  <SelectItem value="SRM-NCR">SRM NCR</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="hostel">Hostel</Label>
-              <Input 
-                id="hostel" 
-                placeholder="e.g., Ganga, Yamuna" 
-                value={hostel} 
-                onChange={(e) => setHostel(e.target.value)} 
-                required 
-                className="transition-all focus:shadow-glow"
+              <Label htmlFor="campus">Campus *</Label>
+              <Input
+                id="campus"
+                placeholder="e.g., Main Campus"
+                value={campus}
+                onChange={(e) => setCampus(e.target.value)}
+                required
+                className="interactive-press"
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="department">Department</Label>
+              <Label htmlFor="hostel">Hostel *</Label>
+              <Input
+                id="hostel"
+                placeholder="e.g., North Hall"
+                value={hostel}
+                onChange={(e) => setHostel(e.target.value)}
+                required
+                className="interactive-press"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="department">Department *</Label>
               <Input
                 id="department"
                 placeholder="e.g., Computer Science"
                 value={department}
                 onChange={(e) => setDepartment(e.target.value)}
                 required
-                className="transition-all focus:shadow-glow"
+                className="interactive-press"
               />
             </div>
 
-            <Button type="submit" className="interactive-press w-full" disabled={saveProfile.isPending}>
-              {saveProfile.isPending ? 'Saving...' : 'Complete Setup'}
+            <Button
+              type="submit"
+              className="w-full interactive-press"
+              disabled={saveProfile.isPending}
+            >
+              {saveProfile.isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                'Complete Setup'
+              )}
             </Button>
           </form>
         </CardContent>

@@ -1,62 +1,75 @@
 import { useNavigate, useSearch } from '@tanstack/react-router';
-import { toast } from 'sonner';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { SellWizardForm } from '../features/listings/sellWizard/SellWizardForm';
 import { useAddListing, useGetListing } from '../api/listings';
 import { useInternetIdentity } from '../hooks/useInternetIdentity';
-import { useGetCallerUserProfile } from '../api/profile';
+import { toast } from 'sonner';
 import { ROUTES } from '../app/routes';
-import { duplicateListingToFormData } from '../features/listings/sellWizard/duplicate/duplicateListing';
+import { ListingStatus, ProductCondition } from '../backend';
 import type { SellWizardFormData } from '../features/listings/sellWizard/sellWizardTypes';
-import type { Listing, ListingStatus } from '../backend';
+import { duplicateListing } from '../features/listings/sellWizard/duplicate/duplicateListing';
+import { clearAutosuggestCache } from '../features/search/autosuggest/autosuggestCache';
 import { AppShell } from '../app/layout/AppShell';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
+import { ConfirmDiscardModal } from '../app/modals/ConfirmDiscardModal';
+import { useSellDraftAutosave } from '../features/listings/sellWizard/useSellDraftAutosave';
 
 export default function SellWizardPage() {
   const navigate = useNavigate();
-  const searchParams = useSearch({ strict: false }) as { duplicate?: string };
+  const search = useSearch({ from: '/protected/sell' }) as { duplicate?: string };
+  const duplicateId = search?.duplicate;
+  const { data: duplicateSource } = useGetListing(duplicateId || '');
+  const addListing = useAddListing();
   const { identity } = useInternetIdentity();
-  const { data: userProfile } = useGetCallerUserProfile();
-  const addListingMutation = useAddListing();
-  const { data: duplicateSource } = useGetListing(searchParams.duplicate || '');
-  const [initialData, setInitialData] = useState<Partial<SellWizardFormData> | undefined>();
+  const [showDiscardModal, setShowDiscardModal] = useState(false);
+  const [formData, setFormData] = useState<SellWizardFormData | null>(null);
 
-  useEffect(() => {
-    if (searchParams.duplicate && duplicateSource) {
-      setInitialData(duplicateListingToFormData(duplicateSource));
-    }
-  }, [searchParams.duplicate, duplicateSource]);
+  const initialData = duplicateSource ? duplicateListing(duplicateSource) : undefined;
 
   const handleSubmit = async (formData: SellWizardFormData) => {
-    if (!identity || !userProfile) {
-      toast.error('Please complete your profile first');
+    if (!identity) {
+      toast.error('You must be logged in to create a listing');
       return;
     }
 
-    const listing: Listing = {
-      id: `listing-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-      title: formData.title,
-      description: formData.description,
-      price: Math.round(parseFloat(formData.price)),
-      condition: formData.condition,
-      category: formData.category,
-      status: 'active' as ListingStatus,
-      seller: identity.getPrincipal(),
-      department: userProfile.department,
-      hostel: userProfile.hostel,
-      campus: userProfile.campus,
-      images: formData.images,
-      created_at: BigInt(Date.now() * 1_000_000),
-      updated_at: BigInt(Date.now() * 1_000_000),
-    };
+    if (!formData.condition || formData.condition === ('' as any)) {
+      toast.error('Please select a condition');
+      return;
+    }
 
     try {
-      await addListingMutation.mutateAsync(listing);
-      toast.success('Listing posted successfully!');
+      await addListing.mutateAsync({
+        id: `listing-${Date.now()}`,
+        title: formData.title,
+        description: formData.description,
+        price: Number(formData.price),
+        original_price: formData.original_price ? Number(formData.original_price) : undefined,
+        condition: formData.condition as ProductCondition,
+        category: formData.category,
+        status: ListingStatus.active,
+        seller: identity.getPrincipal(),
+        department: 'General',
+        hostel: 'Default',
+        campus: 'Main Campus',
+        meetup_locations: formData.meetup_locations,
+        images: formData.images,
+        created_at: BigInt(Date.now() * 1_000_000),
+        updated_at: BigInt(Date.now() * 1_000_000),
+        defect_description: formData.defect_description,
+        trust_indicators: {
+          verified_student: false,
+          star_rating: 0,
+          transaction_count: BigInt(0),
+          reliability_score: 0,
+        },
+      });
+
+      clearAutosuggestCache();
+      toast.success('Listing created successfully!');
       navigate({ to: ROUTES.myListings });
     } catch (error) {
-      console.error('Failed to create listing:', error);
-      toast.error('Failed to post listing. Please try again.');
-      throw error;
+      toast.error('Failed to create listing');
+      console.error(error);
     }
   };
 
@@ -64,17 +77,52 @@ export default function SellWizardPage() {
     navigate({ to: ROUTES.home });
   };
 
+  const handleBackClick = () => {
+    // Check if there's unsaved data
+    const hasUnsavedChanges = formData && (
+      formData.title || 
+      formData.description || 
+      formData.price || 
+      formData.images.length > 0
+    );
+
+    if (hasUnsavedChanges) {
+      setShowDiscardModal(true);
+    } else {
+      navigate({ to: ROUTES.home });
+    }
+  };
+
+  const handleDiscardConfirm = () => {
+    setShowDiscardModal(false);
+    navigate({ to: ROUTES.home });
+  };
+
   return (
-    <AppShell>
-      <div className="container mx-auto max-w-3xl p-4 pb-24">
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold">
-            {searchParams.duplicate ? 'Duplicate Listing' : 'Create Listing'}
-          </h1>
-          <p className="text-muted-foreground">List your item for sale on campus</p>
-        </div>
-        <SellWizardForm initialData={initialData} onSubmit={handleSubmit} onCancel={handleCancel} />
+    <AppShell showBack onBackClick={handleBackClick}>
+      <div className="container mx-auto px-4 py-6 pb-24 max-w-3xl">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-2xl">
+              {duplicateId ? 'Duplicate Listing' : 'Create New Listing'}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <SellWizardForm
+              initialData={initialData}
+              onSubmit={handleSubmit}
+              onCancel={handleCancel}
+              onFormChange={setFormData}
+            />
+          </CardContent>
+        </Card>
       </div>
+
+      <ConfirmDiscardModal
+        open={showDiscardModal}
+        onOpenChange={setShowDiscardModal}
+        onConfirm={handleDiscardConfirm}
+      />
     </AppShell>
   );
 }

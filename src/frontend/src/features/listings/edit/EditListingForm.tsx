@@ -7,59 +7,84 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
 import { ImagePicker } from '../sellWizard/ImagePicker';
-import { AIAssistCards } from '../aiAssist/AIAssistCards';
-import { useIsAIAssistEnabled } from '../../../api/aiAssist';
-import { CATEGORIES, CONDITIONS } from '../sellWizard/sellWizardTypes';
+import { CATEGORIES } from '../sellWizard/sellWizardTypes';
+import { ProductCondition, type Listing, type ListingImage, type LocationDetail } from '../../../backend';
 import { validateAllSteps } from '../sellWizard/sellWizardValidation';
-import type { Listing, ListingImage } from '../../../backend';
 import type { ValidationErrors } from '../sellWizard/sellWizardValidation';
+import type { SellWizardFormData } from '../sellWizard/sellWizardTypes';
 
 interface EditListingFormProps {
   listing: Listing;
-  onSubmit: (listing: Listing) => Promise<void>;
+  onSubmit: (data: Listing) => Promise<void>;
   onCancel: () => void;
 }
+
+const CONDITIONS = [
+  { value: ProductCondition.likeNew, label: 'Like New' },
+  { value: ProductCondition.good, label: 'Good' },
+  { value: ProductCondition.fair, label: 'Fair' },
+  { value: ProductCondition.wellUsed, label: 'Well-Used' },
+];
 
 export function EditListingForm({ listing, onSubmit, onCancel }: EditListingFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<ValidationErrors>({});
-  const { data: aiEnabled } = useIsAIAssistEnabled();
 
   const [formData, setFormData] = useState({
     title: listing.title,
     description: listing.description,
-    price: listing.price.toString(),
+    price: String(listing.price),
+    original_price: listing.original_price ? String(listing.original_price) : '',
     condition: listing.condition,
     category: listing.category,
     images: listing.images,
+    meetup_locations: listing.meetup_locations,
+    defect_description: listing.defect_description,
   });
 
-  const handleFieldChange = (field: string, value: any) => {
+  const handleFieldChange = (field: keyof typeof formData, value: any) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
-    setErrors((prev) => ({ ...prev, [field]: undefined }));
+    setErrors((prev) => {
+      const newErrors = { ...prev };
+      delete newErrors[field];
+      return newErrors;
+    });
   };
 
   const handleSubmit = async () => {
-    const validationErrors = validateAllSteps(formData);
+    const wizardData: SellWizardFormData = {
+      title: formData.title,
+      description: formData.description,
+      price: formData.price,
+      original_price: formData.original_price,
+      condition: formData.condition,
+      category: formData.category,
+      images: formData.images,
+      meetup_locations: formData.meetup_locations,
+      defect_description: formData.defect_description,
+    };
+
+    const validationErrors = validateAllSteps(wizardData);
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
       return;
     }
 
-    const updatedListing: Listing = {
-      ...listing,
-      title: formData.title,
-      description: formData.description,
-      price: Math.round(parseFloat(formData.price)),
-      condition: formData.condition,
-      category: formData.category,
-      images: formData.images,
-      updated_at: BigInt(Date.now() * 1_000_000),
-    };
-
     setIsSubmitting(true);
     try {
-      await onSubmit(updatedListing);
+      await onSubmit({
+        ...listing,
+        title: formData.title,
+        description: formData.description,
+        price: Number(formData.price),
+        original_price: formData.original_price ? Number(formData.original_price) : undefined,
+        condition: formData.condition,
+        category: formData.category,
+        images: formData.images,
+        meetup_locations: formData.meetup_locations,
+        defect_description: formData.defect_description,
+        updated_at: BigInt(Date.now() * 1_000_000),
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -67,17 +92,9 @@ export function EditListingForm({ listing, onSubmit, onCancel }: EditListingForm
 
   return (
     <div className="space-y-6">
-      {aiEnabled && (
-        <AIAssistCards
-          formData={formData}
-          currentStep={0}
-          onApplySuggestion={handleFieldChange}
-        />
-      )}
-
-      <Card className="interactive-glow">
+      <Card>
         <CardHeader>
-          <CardTitle>Listing Details</CardTitle>
+          <CardTitle>Basic Information</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
@@ -91,52 +108,83 @@ export function EditListingForm({ listing, onSubmit, onCancel }: EditListingForm
             {errors.title && <p className="text-sm text-destructive">{errors.title}</p>}
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="category">Category *</Label>
-              <Select value={formData.category} onValueChange={(value) => handleFieldChange('category', value)}>
-                <SelectTrigger id="category" className={errors.category ? 'border-destructive' : ''}>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {CATEGORIES.map((category) => (
-                    <SelectItem key={category} value={category}>
-                      {category}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {errors.category && <p className="text-sm text-destructive">{errors.category}</p>}
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="condition">Condition *</Label>
-              <Select value={formData.condition} onValueChange={(value) => handleFieldChange('condition', value)}>
-                <SelectTrigger id="condition" className={errors.condition ? 'border-destructive' : ''}>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {CONDITIONS.map((condition) => (
-                    <SelectItem key={condition} value={condition}>
-                      {condition}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {errors.condition && <p className="text-sm text-destructive">{errors.condition}</p>}
-            </div>
+          <div className="space-y-2">
+            <Label htmlFor="category">Category *</Label>
+            <Select value={formData.category} onValueChange={(value) => handleFieldChange('category', value)}>
+              <SelectTrigger id="category" className={errors.category ? 'border-destructive' : ''}>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {CATEGORIES.map((category) => (
+                  <SelectItem key={category} value={category}>
+                    {category}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {errors.category && <p className="text-sm text-destructive">{errors.category}</p>}
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="price">Price (₹) *</Label>
-            <Input
-              id="price"
-              type="number"
-              value={formData.price}
-              onChange={(e) => handleFieldChange('price', e.target.value)}
-              className={errors.price ? 'border-destructive' : ''}
+            <Label htmlFor="condition">Condition *</Label>
+            <Select
+              value={formData.condition}
+              onValueChange={(value) => handleFieldChange('condition', value as ProductCondition)}
+            >
+              <SelectTrigger id="condition" className={errors.condition ? 'border-destructive' : ''}>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {CONDITIONS.map((condition) => (
+                  <SelectItem key={condition.value} value={condition.value}>
+                    {condition.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {errors.condition && <p className="text-sm text-destructive">{errors.condition}</p>}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="defect_description">Item Wear & Defects (Optional)</Label>
+            <Textarea
+              id="defect_description"
+              value={formData.defect_description || ''}
+              onChange={(e) => handleFieldChange('defect_description', e.target.value)}
+              rows={3}
+              maxLength={500}
             />
-            {errors.price && <p className="text-sm text-destructive">{errors.price}</p>}
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Pricing & Details</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="price">Price (₹) *</Label>
+              <Input
+                id="price"
+                type="number"
+                value={formData.price}
+                onChange={(e) => handleFieldChange('price', e.target.value)}
+                className={errors.price ? 'border-destructive' : ''}
+              />
+              {errors.price && <p className="text-sm text-destructive">{errors.price}</p>}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="original_price">Original Price (₹)</Label>
+              <Input
+                id="original_price"
+                type="number"
+                value={formData.original_price}
+                onChange={(e) => handleFieldChange('original_price', e.target.value)}
+              />
+            </div>
           </div>
 
           <div className="space-y-2">
@@ -150,15 +198,19 @@ export function EditListingForm({ listing, onSubmit, onCancel }: EditListingForm
             />
             {errors.description && <p className="text-sm text-destructive">{errors.description}</p>}
           </div>
+        </CardContent>
+      </Card>
 
-          <div className="space-y-2">
-            <Label>Photos</Label>
-            <ImagePicker
-              images={formData.images}
-              onChange={(images) => handleFieldChange('images', images)}
-              maxImages={5}
-            />
-          </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Photos</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ImagePicker
+            images={formData.images}
+            onChange={(images) => handleFieldChange('images', images)}
+            maxImages={5}
+          />
         </CardContent>
       </Card>
 

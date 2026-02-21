@@ -1,91 +1,89 @@
 import type { SellWizardFormData } from '../sellWizard/sellWizardTypes';
+import { ProductCondition } from '../../../backend';
 
-export interface Suggestion {
-  id: string;
-  title: string;
-  description: string;
-  field: keyof SellWizardFormData;
-  value: string;
-  icon: string;
-}
+export function generateTitleSuggestion(data: SellWizardFormData): string {
+  if (!data.title) return '';
 
-export function generateTitleSuggestions(data: SellWizardFormData): Suggestion[] {
-  const suggestions: Suggestion[] = [];
+  const title = data.title.trim();
+  if (title.length < 5) return title;
 
-  if (data.title && data.category && data.condition) {
-    const enhancedTitle = `${data.condition} ${data.category} - ${data.title}`;
-    if (enhancedTitle !== data.title && enhancedTitle.length <= 100) {
-      suggestions.push({
-        id: 'title-enhance',
-        title: 'Enhanced Title',
-        description: 'Add condition and category for better visibility',
-        field: 'title',
-        value: enhancedTitle,
-        icon: '✨',
-      });
-    }
+  const words = title.split(' ');
+  const capitalizedWords = words.map((word) => {
+    if (word.length <= 2) return word.toLowerCase();
+    return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+  });
+
+  let enhanced = capitalizedWords.join(' ');
+
+  if (data.condition === ProductCondition.likeNew && !enhanced.toLowerCase().includes('like new')) {
+    enhanced = `${enhanced} - Like New`;
   }
 
-  return suggestions;
-}
-
-export function generateDescriptionSuggestions(data: SellWizardFormData): Suggestion[] {
-  const suggestions: Suggestion[] = [];
-
-  if (data.description.length < 50) {
-    const template = `${data.description}\n\n📦 Condition: ${data.condition || 'Excellent'}\n💰 Price: Negotiable\n📍 Location: Campus\n✅ Ready for immediate pickup`;
-    suggestions.push({
-      id: 'desc-expand',
-      title: 'Expand Description',
-      description: 'Add structured details to attract buyers',
-      field: 'description',
-      value: template,
-      icon: '📝',
-    });
+  if (data.category && !enhanced.toLowerCase().includes(data.category.toLowerCase())) {
+    enhanced = `${data.category}: ${enhanced}`;
   }
 
-  return suggestions;
+  return enhanced.slice(0, 100);
 }
 
-export function generatePriceSuggestions(data: SellWizardFormData): Suggestion[] {
-  const suggestions: Suggestion[] = [];
+export function generateDescriptionSuggestion(data: SellWizardFormData): string {
+  if (!data.description) return '';
 
-  if (data.price && data.condition) {
-    const priceNum = parseFloat(data.price);
-    if (!isNaN(priceNum) && priceNum > 0) {
-      let suggestedPrice = priceNum;
+  const desc = data.description.trim();
+  if (desc.length < 20) return desc;
 
-      // Adjust based on condition
-      if (data.condition === 'New') {
-        suggestedPrice = Math.round(priceNum * 0.95);
-      } else if (data.condition === 'Like New') {
-        suggestedPrice = Math.round(priceNum * 0.85);
-      } else if (data.condition === 'Good') {
-        suggestedPrice = Math.round(priceNum * 0.7);
-      } else if (data.condition === 'Fair') {
-        suggestedPrice = Math.round(priceNum * 0.5);
-      }
+  let enhanced = desc;
 
-      if (suggestedPrice !== priceNum) {
-        suggestions.push({
-          id: 'price-adjust',
-          title: 'Suggested Price',
-          description: `Based on ${data.condition} condition`,
-          field: 'price',
-          value: suggestedPrice.toString(),
-          icon: '💡',
-        });
-      }
-    }
+  if (!enhanced.endsWith('.') && !enhanced.endsWith('!') && !enhanced.endsWith('?')) {
+    enhanced += '.';
   }
 
-  return suggestions;
+  const conditionText = getConditionText(data.condition);
+  if (conditionText && !enhanced.toLowerCase().includes('condition')) {
+    enhanced += ` Item is in ${conditionText} condition.`;
+  }
+
+  if (data.category && !enhanced.toLowerCase().includes('perfect for')) {
+    enhanced += ` Perfect for ${data.category.toLowerCase()} needs.`;
+  }
+
+  return enhanced.slice(0, 1000);
 }
 
-export function generateAllSuggestions(data: SellWizardFormData): Suggestion[] {
-  return [
-    ...generateTitleSuggestions(data),
-    ...generateDescriptionSuggestions(data),
-    ...generatePriceSuggestions(data),
-  ];
+export function generatePriceSuggestion(data: SellWizardFormData): string {
+  if (!data.price) return '';
+
+  const price = Number(data.price);
+  if (isNaN(price) || price <= 0) return data.price;
+
+  let adjustedPrice = price;
+
+  if (data.condition === ProductCondition.likeNew) {
+    adjustedPrice = Math.round(price * 0.95);
+  } else if (data.condition === ProductCondition.good) {
+    adjustedPrice = Math.round(price * 0.9);
+  } else if (data.condition === ProductCondition.fair) {
+    adjustedPrice = Math.round(price * 0.85);
+  } else if (data.condition === ProductCondition.wellUsed) {
+    adjustedPrice = Math.round(price * 0.8);
+  }
+
+  const roundedPrice = Math.round(adjustedPrice / 10) * 10;
+
+  return String(roundedPrice);
+}
+
+function getConditionText(condition: ProductCondition | ''): string {
+  switch (condition) {
+    case ProductCondition.likeNew:
+      return 'like new';
+    case ProductCondition.good:
+      return 'good';
+    case ProductCondition.fair:
+      return 'fair';
+    case ProductCondition.wellUsed:
+      return 'well-used';
+    default:
+      return '';
+  }
 }

@@ -1,66 +1,55 @@
-import { MOCK_LISTINGS } from './mockListings';
+import { mockListings } from './mockListings';
 import type { Listing } from '../../../backend';
 
-// Reduced simulated latency for sub-300ms perceived performance
-const SIMULATED_LATENCY = 100;
-
-// In-memory state for mock mode
-let mockListings: Listing[] = [...MOCK_LISTINGS];
-let savedListingIds: Set<string> = new Set();
-
-const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+let inMemoryListings = [...mockListings];
+let inMemorySavedListings: Set<string> = new Set();
 
 export const mockListingsClient = {
-  async getListings(): Promise<Listing[]> {
-    await delay(SIMULATED_LATENCY);
-    return [...mockListings];
+  getListings: async (): Promise<Listing[]> => {
+    return [...inMemoryListings];
   },
 
-  async getListing(listingId: string): Promise<Listing | null> {
-    await delay(SIMULATED_LATENCY);
-    return mockListings.find((listing) => listing.id === listingId) || null;
-  },
-
-  async searchListings(searchTerm: string): Promise<Listing[]> {
-    await delay(SIMULATED_LATENCY);
+  searchListings: async (searchTerm: string): Promise<Listing[]> => {
     const term = searchTerm.toLowerCase();
-    return mockListings.filter(
+    return inMemoryListings.filter(
       (listing) =>
-        listing.title.toLowerCase().includes(term) || listing.description.toLowerCase().includes(term)
+        listing.title.toLowerCase().includes(term) ||
+        listing.description.toLowerCase().includes(term)
     );
   },
 
-  async getSavedListings(): Promise<Listing[]> {
-    await delay(SIMULATED_LATENCY);
-    return mockListings.filter((listing) => savedListingIds.has(listing.id));
+  getListing: async (id: string): Promise<Listing | null> => {
+    return inMemoryListings.find((l) => l.id === id) || null;
   },
 
-  async saveListing(listingId: string): Promise<void> {
-    await delay(SIMULATED_LATENCY);
-    savedListingIds.add(listingId);
+  addListing: async (listing: Listing): Promise<void> => {
+    inMemoryListings.push(listing);
   },
 
-  async unsaveListing(listingId: string): Promise<void> {
-    await delay(SIMULATED_LATENCY);
-    savedListingIds.delete(listingId);
-  },
-
-  async addListing(listing: Listing): Promise<void> {
-    await delay(SIMULATED_LATENCY);
-    mockListings = [listing, ...mockListings];
-  },
-
-  async updateListing(listingId: string, updatedListing: Listing): Promise<void> {
-    await delay(SIMULATED_LATENCY);
-    const index = mockListings.findIndex(l => l.id === listingId);
+  updateListing: async (id: string, updatedListing: Listing): Promise<void> => {
+    const index = inMemoryListings.findIndex((l) => l.id === id);
     if (index !== -1) {
-      mockListings[index] = updatedListing;
+      inMemoryListings[index] = updatedListing;
     }
   },
 
-  async deleteListing(listingId: string): Promise<void> {
-    await delay(SIMULATED_LATENCY);
-    mockListings = mockListings.filter(l => l.id !== listingId);
-    savedListingIds.delete(listingId);
+  deleteListing: async (id: string): Promise<void> => {
+    inMemoryListings = inMemoryListings.filter((l) => l.id !== id);
+  },
+
+  saveListing: async (id: string): Promise<void> => {
+    inMemorySavedListings.add(id);
+  },
+
+  unsaveListing: async (id: string): Promise<void> => {
+    inMemorySavedListings.delete(id);
+  },
+
+  getSavedListings: async (): Promise<Listing[]> => {
+    return inMemoryListings.filter((l) => inMemorySavedListings.has(l.id));
+  },
+
+  getListingsBySeller: async (seller: string): Promise<Listing[]> => {
+    return inMemoryListings.filter((l) => l.seller.toString() === seller);
   },
 };

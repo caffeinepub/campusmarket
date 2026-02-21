@@ -1,28 +1,27 @@
 export const queryKeys = {
-  listings: {
-    all: ['listings'] as const,
-    list: () => [...queryKeys.listings.all, 'list'] as const,
-    detail: (id: string) => [...queryKeys.listings.all, 'detail', id] as const,
-    search: (term: string) => [...queryKeys.listings.all, 'search', term] as const,
-    saved: () => [...queryKeys.listings.all, 'saved'] as const,
-    bySeller: (seller: string) => [...queryKeys.listings.all, 'bySeller', seller] as const,
-  },
   profile: {
-    all: ['profile'] as const,
-    current: () => [...queryKeys.profile.all, 'current'] as const,
-    byId: (id: string) => [...queryKeys.profile.all, 'byId', id] as const,
+    current: () => ['currentUserProfile'] as const,
+    byPrincipal: (principal: string) => ['userProfile', principal] as const,
+  },
+  listings: {
+    all: () => ['listings'] as const,
+    byId: (id: string) => ['listing', id] as const,
+    bySeller: (seller: string) => ['listingsBySeller', seller] as const,
+    saved: () => ['savedListings'] as const,
+    search: (term: string) => ['searchListings', term] as const,
   },
   chat: {
-    all: ['chat'] as const,
-    threads: () => [...queryKeys.chat.all, 'threads'] as const,
-    thread: (id: string) => [...queryKeys.chat.all, 'thread', id] as const,
+    threads: () => ['chatThreads'] as const,
+    thread: (id: string) => ['chatThread', id] as const,
   },
   notifications: {
-    all: ['notifications'] as const,
-    list: () => [...queryKeys.notifications.all, 'list'] as const,
+    all: () => ['notifications'] as const,
   },
   insights: {
-    all: ['insights'] as const,
-    analytics: (timeRange: string) => [...queryKeys.insights.all, 'analytics', timeRange] as const,
+    analytics: (timeRange: string) => ['insights', 'analytics', timeRange] as const,
+  },
+  reviews: {
+    seller: (listingId: string) => ['sellerReviews', listingId] as const,
+    product: (listingId: string) => ['productReviews', listingId] as const,
   },
 } as const;

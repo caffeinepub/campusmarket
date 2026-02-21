@@ -30,6 +30,14 @@ export default function App() {
       perfTiming.log('Loaded campus preference: ' + cookiePrefs.campus_slug);
     }
 
+    // Apply theme preference
+    const root = document.documentElement;
+    if (cookiePrefs.prefers_dark_mode) {
+      root.classList.add('dark');
+    } else {
+      root.classList.remove('dark');
+    }
+
     // Hydrate profile cache on startup
     const cachedProfile = getCachedProfile();
     if (cachedProfile) {

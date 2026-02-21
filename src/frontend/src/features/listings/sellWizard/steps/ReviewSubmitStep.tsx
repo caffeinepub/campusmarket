@@ -1,63 +1,125 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
-import type { SellWizardFormData } from '../sellWizardTypes';
+import { Button } from '@/components/ui/button';
+import { Edit } from 'lucide-react';
+import type { SellWizardFormData, WizardStep } from '../sellWizardTypes';
+import { ConditionBadge } from '../../components/ConditionBadge';
+import { ProductCondition } from '../../../../backend';
 
 interface ReviewSubmitStepProps {
   data: SellWizardFormData;
+  onEditStep?: (step: WizardStep) => void;
 }
 
-export function ReviewSubmitStep({ data }: ReviewSubmitStepProps) {
+export function ReviewSubmitStep({ data, onEditStep }: ReviewSubmitStepProps) {
+  const hasOriginalPrice = data.original_price && Number(data.original_price) > Number(data.price);
+
   return (
-    <Card className="interactive-glow">
-      <CardHeader>
-        <CardTitle>Review Your Listing</CardTitle>
-        <CardDescription>Make sure everything looks good before posting</CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        {data.images.length > 0 && (
+    <div className="space-y-6">
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle>Basic Information</CardTitle>
+          {onEditStep && (
+            <Button variant="ghost" size="sm" onClick={() => onEditStep(0)}>
+              <Edit className="h-4 w-4 mr-2" />
+              Edit
+            </Button>
+          )}
+        </CardHeader>
+        <CardContent className="space-y-3">
           <div>
-            <h4 className="mb-2 text-sm font-semibold">Photos ({data.images.length})</h4>
-            <div className="grid grid-cols-3 gap-2 sm:grid-cols-5">
-              {data.images.map((image, index) => (
-                <div key={image.id.toString()} className="relative aspect-square overflow-hidden rounded-md border">
-                  <img src={image.url} alt={`Preview ${index + 1}`} className="h-full w-full object-cover" />
-                  {index === 0 && (
-                    <Badge className="absolute left-1 top-1 text-xs">Cover</Badge>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        <Separator />
-
-        <div>
-          <h4 className="mb-2 text-sm font-semibold">Title</h4>
-          <p className="text-foreground">{data.title}</p>
-        </div>
-
-        <div className="flex gap-4">
-          <div>
-            <h4 className="mb-2 text-sm font-semibold">Price</h4>
-            <p className="text-lg font-bold text-primary">₹{data.price}</p>
+            <p className="text-sm text-muted-foreground">Title</p>
+            <p className="font-medium">{data.title}</p>
           </div>
           <div>
-            <h4 className="mb-2 text-sm font-semibold">Category</h4>
+            <p className="text-sm text-muted-foreground">Category</p>
             <Badge variant="secondary">{data.category}</Badge>
           </div>
           <div>
-            <h4 className="mb-2 text-sm font-semibold">Condition</h4>
-            <Badge variant="outline">{data.condition}</Badge>
+            <p className="text-sm text-muted-foreground">Condition</p>
+            <ConditionBadge condition={data.condition as ProductCondition} showIndicator />
           </div>
-        </div>
+          {data.defect_description && (
+            <div>
+              <p className="text-sm text-muted-foreground">Wear & Defects</p>
+              <p className="text-sm">{data.defect_description}</p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
-        <div>
-          <h4 className="mb-2 text-sm font-semibold">Description</h4>
-          <p className="whitespace-pre-wrap text-sm text-muted-foreground">{data.description}</p>
-        </div>
-      </CardContent>
-    </Card>
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle>Pricing & Details</CardTitle>
+          {onEditStep && (
+            <Button variant="ghost" size="sm" onClick={() => onEditStep(1)}>
+              <Edit className="h-4 w-4 mr-2" />
+              Edit
+            </Button>
+          )}
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div>
+            <p className="text-sm text-muted-foreground">Price</p>
+            <div className="flex items-baseline gap-2">
+              <p className="text-2xl font-bold">₹{data.price}</p>
+              {hasOriginalPrice && (
+                <p className="text-lg text-muted-foreground line-through">₹{data.original_price}</p>
+              )}
+            </div>
+          </div>
+          <div>
+            <p className="text-sm text-muted-foreground">Description</p>
+            <p className="text-sm">{data.description}</p>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle>Meetup Locations</CardTitle>
+          {onEditStep && (
+            <Button variant="ghost" size="sm" onClick={() => onEditStep(2)}>
+              <Edit className="h-4 w-4 mr-2" />
+              Edit
+            </Button>
+          )}
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-wrap gap-2">
+            {data.meetup_locations.map((location, index) => (
+              <Badge key={index} variant="outline">
+                {location.name}
+              </Badge>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle>Photos</CardTitle>
+          {onEditStep && (
+            <Button variant="ghost" size="sm" onClick={() => onEditStep(3)}>
+              <Edit className="h-4 w-4 mr-2" />
+              Edit
+            </Button>
+          )}
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-3 gap-3">
+            {data.images.map((image, index) => (
+              <div key={index} className="aspect-square rounded-lg overflow-hidden bg-muted">
+                <img
+                  src={image.url}
+                  alt={`Preview ${index + 1}`}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 }

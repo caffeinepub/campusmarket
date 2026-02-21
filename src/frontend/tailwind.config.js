@@ -64,6 +64,15 @@ export default {
           4: 'oklch(var(--chart-4))',
           5: 'oklch(var(--chart-5))',
         },
+        // Coral accent
+        coral: 'oklch(62% 0.19 25)',
+        // Amber accent
+        amber: 'oklch(75% 0.15 75)',
+        // Condition colors
+        'condition-like-new': 'oklch(var(--condition-like-new))',
+        'condition-good': 'oklch(var(--condition-good))',
+        'condition-fair': 'oklch(var(--condition-fair))',
+        'condition-well-used': 'oklch(var(--condition-well-used))',
       },
       borderRadius: {
         lg: 'var(--radius)',
@@ -79,6 +88,10 @@ export default {
         soft: '0 4px 16px -4px rgba(0,0,0,0.1)',
       },
       spacing: {
+        '7': '1.75rem',
+        '9': '2.25rem',
+        '11': '2.75rem',
+        '13': '3.25rem',
         '18': '4.5rem',
         '88': '22rem',
       },

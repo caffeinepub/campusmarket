@@ -18,7 +18,7 @@ export function useGetListings() {
   const shouldUseMock = isMockMode || session.type === 'dev-bypass';
 
   return useQuery<Listing[]>({
-    queryKey: queryKeys.listings.list(),
+    queryKey: queryKeys.listings.all(),
     queryFn: async () => {
       if (shouldUseMock) {
         return mockListingsClient.getListings();
@@ -62,7 +62,7 @@ export function useGetListing(listingId: string) {
   const shouldUseMock = isMockMode || session.type === 'dev-bypass';
 
   return useQuery<Listing | null>({
-    queryKey: queryKeys.listings.detail(listingId),
+    queryKey: queryKeys.listings.byId(listingId),
     queryFn: async () => {
       if (shouldUseMock) {
         return mockListingsClient.getListing(listingId);
@@ -136,7 +136,7 @@ export function useSaveListing() {
     onMutate: async (listingId) => {
       await queryClient.cancelQueries({ queryKey: queryKeys.listings.saved() });
       const previousSaved = queryClient.getQueryData<Listing[]>(queryKeys.listings.saved());
-      const listing = queryClient.getQueryData<Listing | null>(queryKeys.listings.detail(listingId));
+      const listing = queryClient.getQueryData<Listing | null>(queryKeys.listings.byId(listingId));
       if (listing && previousSaved) {
         queryClient.setQueryData<Listing[]>(queryKeys.listings.saved(), [...previousSaved, listing]);
       }
@@ -214,16 +214,16 @@ export function useAddListing() {
     onSuccess: (_, listing) => {
       // Eagerly update caches for immediate visibility
       queryClient.setQueryData<Listing[]>(
-        queryKeys.listings.list(),
+        queryKeys.listings.all(),
         (old) => old ? [listing, ...old] : [listing]
       );
       queryClient.setQueryData<Listing | null>(
-        queryKeys.listings.detail(listing.id),
+        queryKeys.listings.byId(listing.id),
         listing
       );
       
       // Invalidate all listing-related queries
-      queryClient.invalidateQueries({ queryKey: queryKeys.listings.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.listings.all() });
       
       // Clear autosuggest cache so new listing appears in suggestions
       clearAutosuggestCache();
@@ -255,8 +255,8 @@ export function useUpdateListing() {
       return actor.updateListing(listingId, listing);
     },
     onSuccess: (_, { listingId }) => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.listings.detail(listingId) });
-      queryClient.invalidateQueries({ queryKey: queryKeys.listings.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.listings.byId(listingId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.listings.all() });
       clearAutosuggestCache();
       toast.success('Listing updated successfully');
     },
@@ -285,7 +285,7 @@ export function useDeleteListing() {
       return actor.deleteListing(listingId);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.listings.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.listings.all() });
       clearAutosuggestCache();
       toast.success('Listing deleted successfully');
     },

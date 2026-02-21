@@ -19,24 +19,38 @@ export function PricingDetailsStep({ data, errors, onChange }: PricingDetailsSte
         <CardDescription>Set your price and describe your item</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="price">Price (₹) *</Label>
-          <Input
-            id="price"
-            type="number"
-            placeholder="e.g., 45000"
-            value={data.price}
-            onChange={(e) => onChange('price', e.target.value)}
-            className={errors.price ? 'border-destructive' : ''}
-          />
-          {errors.price && <p className="text-sm text-destructive">{errors.price}</p>}
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="price">Price (₹) *</Label>
+            <Input
+              id="price"
+              type="number"
+              placeholder="e.g., 45000"
+              value={data.price}
+              onChange={(e) => onChange('price', e.target.value)}
+              className={errors.price ? 'border-destructive' : ''}
+            />
+            {errors.price && <p className="text-sm text-destructive">{errors.price}</p>}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="original_price">Original Price (₹)</Label>
+            <Input
+              id="original_price"
+              type="number"
+              placeholder="Optional"
+              value={data.original_price || ''}
+              onChange={(e) => onChange('original_price', e.target.value)}
+            />
+            <p className="text-xs text-muted-foreground">Show discount if applicable</p>
+          </div>
         </div>
 
         <div className="space-y-2">
           <Label htmlFor="description">Description *</Label>
           <Textarea
             id="description"
-            placeholder="Describe your item in detail. Include any defects, accessories, or special features..."
+            placeholder="Describe your item in detail. Include any accessories or special features..."
             value={data.description}
             onChange={(e) => onChange('description', e.target.value)}
             className={errors.description ? 'border-destructive' : ''}

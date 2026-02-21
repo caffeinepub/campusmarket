@@ -1,121 +1,107 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-21T15:14:02.968Z",
-  "summary": "The diff implements a comprehensive frontend redesign with clean minimalist aesthetics, including layout refinements, card-based UI components, discovery sections, search filtering, and a warm earth-tone color system. However, many critical backend features and full frontend requirements remain unimplemented.",
+  "generatedAt": "2026-02-21T21:20:29.546Z",
+  "summary": "The diff shows substantial progress toward the BuildRequest requirements. Nearly all features have frontend scaffolding or hooks, backend types are present in main.mo and migration.mo, and the router includes new pages. However, implementation is incomplete for most requirements: mock data and placeholder logic dominate, backend queries/mutations are missing or shallow, and advanced features like relevance scoring, distance sorting, and featured listing backend logic are not fully connected. Several requirements lack evidence of working end-to-end flows.",
   "missing_requirements": [
     {
-      "id": "REQ-2",
-      "requirement": "Implement campus verification system supporting both .edu email verification and manual campus selection during onboarding, storing campus affiliation in user profiles",
-      "reason": "No evidence of campus verification logic, .edu email validation, onboarding campus selection UI, or backend validation in the diff",
+      "id": "REQ-1",
+      "requirement": "Analytics dashboard with interactive charts for time ranges (7, 30, 90 days) displaying sales trends, view counts, and engagement metrics",
+      "reason": "Frontend components use generateMockSalesData and generateMockViewData with no backend integration. useGetInsightsAnalytics hook exists but backend query is not shown in diff. Mock data generation does not match real analytics logic.",
+      "evidence": [
+        "frontend/src/features/analytics/components/SalesTrendsChart.tsx",
+        "frontend/src/features/analytics/components/ViewCountsChart.tsx",
+        "frontend/src/features/analytics/components/EngagementMetricsCards.tsx",
+        "frontend/src/pages/InsightsPage.tsx"
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "requirement": "Relevance sort uses scoring algorithm based on user signals",
+      "reason": "Diff shows no implementation of relevance scoring algorithm or user signals collection (views, saves, transaction count). SortOption types may exist but scoring logic is missing.",
       "evidence": []
     },
     {
-      "id": "REQ-3",
-      "requirement": "Enable sellers to upload multiple photos per listing (up to 5 images), manage pricing, mark items as sold, and control inventory status with an intuitive listing management interface",
-      "reason": "No drag-and-drop photo reordering, no sold status toggle UI, no My Listings page showing inventory status clearly",
+      "id": "REQ-4",
+      "requirement": "Distance sort calculates proximity to user's campus location",
+      "reason": "No distance calculation logic, geolocation API usage, or proximity scoring appears in the diff. LocationDetail type exists but no distance sorting implementation.",
       "evidence": []
     },
     {
       "id": "REQ-5",
-      "requirement": "Create comprehensive user profile pages displaying seller ratings, listing history, verification badges, campus affiliation, and trust indicators",
-      "reason": "No profile page component showing active/sold listings, seller ratings, verification badges, or campus affiliation in the diff",
+      "requirement": "Admin or sellers can mark listings as featured through backend",
+      "reason": "No backend mutation or admin role logic for marking listings as featured. ListingCard has optional featured styling but no evidence of backend query or update function.",
+      "evidence": [
+        "frontend/src/features/listings/components/ListingCard.tsx"
+      ]
+    },
+    {
+      "id": "REQ-5",
+      "requirement": "Featured listings rotate or display in priority order",
+      "reason": "No rotation logic or priority ordering algorithm visible in diff. Featured section placement is suggested but implementation details missing.",
       "evidence": []
     },
     {
       "id": "REQ-6",
-      "requirement": "Implement buyer-seller messaging system with thread-based conversations, typing indicators, read receipts, and quick offer buttons for seamless communication",
-      "reason": "No typing indicators, read receipts, or quick offer button implementations visible in the diff",
-      "evidence": []
+      "requirement": "After completing a transaction, buyers can submit a rating (1-5 stars) and optional review text",
+      "reason": "SubmitReviewModal exists but no transaction completion hook or flow that triggers review submission. No backend mutation call evidence for addSellerReview in transaction context.",
+      "evidence": [
+        "frontend/src/features/reviews/components/SubmitReviewModal.tsx"
+      ]
     },
     {
-      "id": "REQ-7",
-      "requirement": "Add price suggestion feature that analyzes item condition, category, and comparable listings to recommend optimal pricing when creating or editing listings",
-      "reason": "No price suggestion logic, no analysis of condition/category/comparable listings, no UI for accepting or overriding suggested prices",
-      "evidence": []
+      "id": "REQ-6",
+      "requirement": "Reputation score updates immediately after new review submission",
+      "reason": "Review hooks invalidate queries but no evidence of reputation score recalculation logic in backend or immediate UI update for seller profiles.",
+      "evidence": [
+        "frontend/src/api/reviews.ts"
+      ]
     },
     {
       "id": "REQ-8",
-      "requirement": "Implement urgent sale tags for end-of-semester listings, allowing sellers to mark listings as time-sensitive and prioritizing them in search results and feeds",
-      "reason": "No urgent sale toggle UI, no urgent sale badge display, no prioritization logic in search results or feeds",
-      "evidence": []
+      "requirement": "Key attributes shown in comparison view include seller ratings and meetup locations",
+      "reason": "ComparisonPage.tsx truncated but visible code shows only basic card structure. No seller rating or meetup location rendering logic confirmed in diff.",
+      "evidence": [
+        "frontend/src/pages/ComparisonPage.tsx"
+      ]
     },
     {
       "id": "REQ-9",
-      "requirement": "Add campus meetup location suggestions feature that recommends safe, public meeting spots on campus when buyers and sellers arrange transactions",
-      "reason": "Campus meetup locations array exists in ListingDetailsPage.tsx but no UI for selecting locations in chat or listing detail, no safety tips accompaniment",
+      "requirement": "Recently viewed items persist across browser sessions",
+      "reason": "RecentlyViewedPage uses getRecentlyViewed from persistence module but no evidence of localStorage/sessionStorage implementation or cross-session persistence logic in diff.",
       "evidence": [
-        "frontend/src/pages/ListingDetailsPage.tsx"
-      ]
-    },
-    {
-      "id": "REQ-10",
-      "requirement": "Implement saved searches feature allowing users to save search queries with filters and receive notifications when new listings match their saved criteria",
-      "reason": "No saved searches UI, no ability to save current query/filters, no backend matching logic, no notifications for matches",
-      "evidence": []
-    },
-    {
-      "id": "REQ-11",
-      "requirement": "Redesign home page with a premium dashboard layout featuring personalized listing recommendations, quick action cards, recently viewed items strip, trending section, and campus-specific widgets",
-      "reason": "HomePage.tsx includes quick actions, stats, trending, and recommended sections, but no campus-specific widgets or explicit recently viewed items strip visible",
-      "evidence": [
-        "frontend/src/pages/HomePage.tsx"
-      ]
-    },
-    {
-      "id": "REQ-12",
-      "requirement": "Redesign listing detail pages with large image carousels, clear pricing and condition display, prominent save and cart actions, seller profile preview, chat button, and integrated safety tips",
-      "reason": "ListingDetailsPage.tsx shows some elements but seller profile card with rating/verification status is not clearly implemented, safety tips banner integration unclear",
-      "evidence": [
-        "frontend/src/pages/ListingDetailsPage.tsx"
+        "frontend/src/pages/RecentlyViewedPage.tsx"
       ]
     }
   ],
-  "hallucinated_features": [
-    {
-      "description": "Insights route and page added to router configuration",
-      "reason": "REQ-1 through REQ-14 do not mention any insights, analytics, or insights page feature",
-      "evidence": [
-        "frontend/src/app/router.tsx",
-        "frontend/src/app/routes.ts",
-        "frontend-file-summaries.txt"
-      ]
-    },
-    {
-      "description": "Cart functionality with add/remove/count and cart badge on bottom tabs",
-      "reason": "No requirement mentions a shopping cart feature; the BuildRequest focuses on marketplace listings, messaging, and profiles, not cart-based checkout",
-      "evidence": [
-        "frontend/src/app/layout/BottomTabs.tsx",
-        "frontend/src/features/listings/components/ListingCard.tsx",
-        "frontend/src/pages/ListingDetailsPage.tsx"
-      ]
-    },
-    {
-      "description": "Notifications bell icon and notifications route in TopBar",
-      "reason": "While REQ-10 mentions notifications for saved searches, a general notifications page with bell icon was not explicitly requested",
-      "evidence": [
-        "frontend/src/app/layout/TopBar.tsx"
-      ]
-    }
-  ],
-  "confidence": 0.85,
+  "hallucinated_features": [],
+  "confidence": 0.75,
   "changed_files": [
+    "backend/main.mo",
+    "backend/migration.mo",
     "frontend-file-summaries.txt",
-    "frontend/src/app/layout/AppShell.tsx",
-    "frontend/src/app/layout/BottomTabs.tsx",
+    "frontend/src/api/listings.ts",
+    "frontend/src/api/notifications.ts",
+    "frontend/src/api/queries.ts",
+    "frontend/src/api/reviews.ts",
     "frontend/src/app/layout/TopBar.tsx",
-    "frontend/src/features/discovery/components/RecommendedSection.tsx",
-    "frontend/src/features/discovery/components/TrendingSection.tsx",
-    "frontend/src/features/home/components/DashboardQuickActions.tsx",
-    "frontend/src/features/home/components/DashboardStatsRow.tsx",
-    "frontend/src/features/listings/components/ListingCard.tsx",
-    "frontend/src/features/search/components/CategoryBrowseChips.tsx",
-    "frontend/src/features/search/components/SearchFiltersBar.tsx",
-    "frontend/src/index.css",
-    "frontend/src/pages/HomePage.tsx",
-    "frontend/src/pages/ListingDetailsPage.tsx",
-    "frontend/src/pages/SearchPage.tsx",
-    "frontend/tailwind.config.js",
+    "frontend/src/app/router.tsx",
+    "frontend/src/app/routes.ts",
+    "frontend/src/features/analytics/components/EngagementMetricsCards.tsx",
+    "frontend/src/features/analytics/components/SalesTrendsChart.tsx",
+    "frontend/src/features/analytics/components/TimeRangeSelector.tsx",
+    "frontend/src/features/analytics/components/ViewCountsChart.tsx",
+    "frontend/src/features/analytics/export/exportToCSV.ts",
+    "frontend/src/features/comparison/components/CompareButton.tsx",
+    "frontend/src/features/comparison/components/ComparisonCheckbox.tsx",
+    "frontend/src/features/comparison/hooks/useComparisonState.ts",
+    "frontend/src/features/listings/myListings/MyListingCard.tsx",
+    "frontend/src/features/reviews/components/ReviewCard.tsx",
+    "frontend/src/features/reviews/components/SellerReviewsList.tsx",
+    "frontend/src/features/reviews/components/SubmitReviewModal.tsx",
+    "frontend/src/pages/ComparisonPage.tsx",
+    "frontend/src/pages/InsightsPage.tsx",
+    "frontend/src/pages/RecentlyViewedPage.tsx",
     "project_state.json"
   ]
 }

@@ -2,12 +2,13 @@ import { useNavigate, useSearch } from '@tanstack/react-router';
 import { useEffect, useState } from 'react';
 import type { Listing } from '../../../backend';
 import { getHomeFilters, setHomeFilters as persistHomeFilters } from '../../../store/persistence/homeFilters';
+import { applySorting, type SortOption } from './sortOptions';
 
 export interface HomeFilters {
   category?: string;
   priceMin?: number;
   priceMax?: number;
-  sort: 'recent' | 'price-low' | 'price-high';
+  sort: SortOption;
 }
 
 export function useHomeFeedFilters() {
@@ -21,16 +22,20 @@ export function useHomeFeedFilters() {
         category: searchParams.category,
         priceMin: searchParams.priceMin,
         priceMax: searchParams.priceMax,
-        sort: searchParams.sort || 'recent',
+        sort: (searchParams.sort as SortOption) || 'newest',
       };
     }
-    return getHomeFilters();
+    const persisted = getHomeFilters();
+    return {
+      ...persisted,
+      sort: (persisted.sort as SortOption) || 'newest',
+    };
   });
 
   // Sync to URL and persistence
   const setFilters = (newFilters: HomeFilters) => {
     setFiltersState(newFilters);
-    persistHomeFilters(newFilters);
+    persistHomeFilters(newFilters as any);
     
     // Use replace to update URL without adding to history
     navigate({
@@ -39,7 +44,7 @@ export function useHomeFeedFilters() {
         category: newFilters.category,
         priceMin: newFilters.priceMin,
         priceMax: newFilters.priceMax,
-        sort: newFilters.sort !== 'recent' ? newFilters.sort : undefined,
+        sort: newFilters.sort !== 'newest' ? newFilters.sort : undefined,
       } as any,
       replace: true,
     });
@@ -60,15 +65,7 @@ export function useHomeFeedFilters() {
       filtered = filtered.filter((l) => l.price <= filters.priceMax!);
     }
 
-    if (filters.sort === 'price-low') {
-      filtered.sort((a, b) => a.price - b.price);
-    } else if (filters.sort === 'price-high') {
-      filtered.sort((a, b) => b.price - a.price);
-    } else {
-      filtered.sort((a, b) => Number(b.created_at - a.created_at));
-    }
-
-    return filtered;
+    return applySorting(filtered, filters.sort);
   };
 
   return { filters, setFilters, applyFiltersToListings };

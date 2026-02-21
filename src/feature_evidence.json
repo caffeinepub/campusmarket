@@ -2,15 +2,15 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-redesign-the-entire-frontend-with-a-sleek-minimalist-e-commerce-aesthetic-inspired-by-the-uploaded-reference-images-image-10-png-and-image-11-png-featuring-clean-product-cards-smooth-navigation-elegant-typography-generous-white-space-and-a-cohesive-visual-identity-that-works-seamlessly-on-both-mobile-and-desktop",
-      "featureTitle": "Redesign the entire frontend with a sleek, minimalist e-commerce aesthetic inspired by the uploaded reference images (image-10.png and image-11.png), featuring clean product cards, smooth navigation, elegant typography, generous white space, and a cohesive visual identity that works seamlessly on both mobile and desktop",
+      "featureId": "feature-create-an-analytics-dashboard-page-at-insights-displaying-sales-trends-view-counts-and-engagement-metrics-with-interactive-charts-for-time-ranges-7-30-90-days",
+      "featureTitle": "Create an analytics dashboard page at /insights displaying sales trends, view counts, and engagement metrics with interactive charts for time ranges (7, 30, 90 days)",
       "files": [
-        "frontend/src/app/layout/AppShell.tsx",
-        "frontend/src/app/layout/BottomTabs.tsx",
-        "frontend/src/app/layout/TopBar.tsx",
-        "frontend/src/features/listings/components/ListingCard.tsx",
-        "frontend/src/index.css",
-        "frontend/tailwind.config.js"
+        "frontend/src/app/router.tsx",
+        "frontend/src/features/analytics/components/EngagementMetricsCards.tsx",
+        "frontend/src/features/analytics/components/SalesTrendsChart.tsx",
+        "frontend/src/features/analytics/components/TimeRangeSelector.tsx",
+        "frontend/src/features/analytics/components/ViewCountsChart.tsx",
+        "frontend/src/pages/InsightsPage.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -27,12 +27,11 @@
       "confidence": "high"
     },
     {
-      "featureId": "feature-build-advanced-search-and-filtering-ui-with-category-specific-filters-for-campus-needs-including-textbooks-furniture-electronics-clothing-dorm-essentials-course-materials-and-move-out-sales-with-sort-options-and-price-ranges",
-      "featureTitle": "Build advanced search and filtering UI with category-specific filters for campus needs including textbooks, furniture, electronics, clothing, dorm essentials, course materials, and move-out sales, with sort options and price ranges",
+      "featureId": "feature-add-csv-export-functionality-to-the-analytics-dashboard-allowing-users-to-download-their-analytics-data",
+      "featureTitle": "Add CSV export functionality to the analytics dashboard allowing users to download their analytics data",
       "files": [
-        "frontend/src/features/search/components/CategoryBrowseChips.tsx",
-        "frontend/src/features/search/components/SearchFiltersBar.tsx",
-        "frontend/src/pages/SearchPage.tsx"
+        "frontend/src/features/analytics/export/exportToCSV.ts",
+        "frontend/src/pages/InsightsPage.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -44,15 +43,82 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-4"
+        "REQ-2"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-implement-urgent-sale-tags-for-end-of-semester-listings-allowing-sellers-to-mark-listings-as-time-sensitive-and-prioritizing-them-in-search-results-and-feeds",
-      "featureTitle": "Implement urgent sale tags for end-of-semester listings, allowing sellers to mark listings as time-sensitive and prioritizing them in search results and feeds",
+      "featureId": "feature-implement-dark-light-theme-toggle-with-persistence-applying-the-theme-consistently-across-all-pages-and-components",
+      "featureTitle": "Implement dark/light theme toggle with persistence, applying the theme consistently across all pages and components",
       "files": [
-        "frontend/src/features/listings/components/ListingCard.tsx"
+        "frontend/src/app/layout/TopBar.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-3"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-implement-a-review-and-rating-system-where-buyers-can-rate-sellers-after-transactions-and-display-seller-reputation-scores-on-listing-pages-and-profiles",
+      "featureTitle": "Implement a review and rating system where buyers can rate sellers after transactions, and display seller reputation scores on listing pages and profiles",
+      "files": [
+        "frontend/src/api/reviews.ts",
+        "frontend/src/features/reviews/components/ReviewCard.tsx",
+        "frontend/src/features/reviews/components/SellerReviewsList.tsx",
+        "frontend/src/features/reviews/components/SubmitReviewModal.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-6"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-add-favoriting-functionality-allowing-users-to-save-listings-to-a-favorites-collection-with-optimistic-ui-updates",
+      "featureTitle": "Add favoriting functionality allowing users to save listings to a favorites collection with optimistic UI updates",
+      "files": [
+        "frontend/src/api/listings.ts"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-7"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-create-a-comparison-tool-that-allows-users-to-select-up-to-3-listings-and-view-them-side-by-side-in-a-comparison-view-showing-price-condition-features-and-seller-ratings",
+      "featureTitle": "Create a comparison tool that allows users to select up to 3 listings and view them side-by-side in a comparison view showing price, condition, features, and seller ratings",
+      "files": [
+        "frontend/src/app/router.tsx",
+        "frontend/src/features/comparison/components/CompareButton.tsx",
+        "frontend/src/features/comparison/components/ComparisonCheckbox.tsx",
+        "frontend/src/features/comparison/hooks/useComparisonState.ts",
+        "frontend/src/pages/ComparisonPage.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -69,10 +135,12 @@
       "confidence": "high"
     },
     {
-      "featureId": "feature-add-campus-meetup-location-suggestions-feature-that-recommends-safe-public-meeting-spots-on-campus-when-buyers-and-sellers-arrange-transactions",
-      "featureTitle": "Add campus meetup location suggestions feature that recommends safe, public meeting spots on campus when buyers and sellers arrange transactions",
+      "featureId": "feature-implement-a-recently-viewed-tracker-that-records-listings-users-have-viewed-and-displays-them-in-a-horizontal-strip-on-the-home-page-and-a-dedicated-page",
+      "featureTitle": "Implement a recently viewed tracker that records listings users have viewed and displays them in a horizontal strip on the home page and a dedicated page",
       "files": [
-        "frontend/src/pages/ListingDetailsPage.tsx"
+        "frontend/src/app/layout/TopBar.tsx",
+        "frontend/src/app/router.tsx",
+        "frontend/src/pages/RecentlyViewedPage.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -85,111 +153,6 @@
       ],
       "testIds": [
         "REQ-9"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-implement-saved-searches-feature-allowing-users-to-save-search-queries-with-filters-and-receive-notifications-when-new-listings-match-their-saved-criteria",
-      "featureTitle": "Implement saved searches feature allowing users to save search queries with filters and receive notifications when new listings match their saved criteria",
-      "files": [
-        "frontend/src/pages/SearchPage.tsx"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "blob-storage@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-10"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-redesign-home-page-with-a-premium-dashboard-layout-featuring-personalized-listing-recommendations-quick-action-cards-recently-viewed-items-strip-trending-section-and-campus-specific-widgets-all-styled-with-the-new-minimalist-aesthetic",
-      "featureTitle": "Redesign home page with a premium dashboard layout featuring personalized listing recommendations, quick action cards, recently viewed items strip, trending section, and campus-specific widgets, all styled with the new minimalist aesthetic",
-      "files": [
-        "frontend/src/features/discovery/components/RecommendedSection.tsx",
-        "frontend/src/features/discovery/components/TrendingSection.tsx",
-        "frontend/src/features/home/components/DashboardQuickActions.tsx",
-        "frontend/src/features/home/components/DashboardStatsRow.tsx",
-        "frontend/src/pages/HomePage.tsx"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "blob-storage@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-11"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-redesign-listing-detail-pages-with-large-image-carousels-clear-pricing-and-condition-display-prominent-save-and-cart-actions-seller-profile-preview-chat-button-and-integrated-safety-tips-following-the-clean-product-detail-layout-from-the-reference-images",
-      "featureTitle": "Redesign listing detail pages with large image carousels, clear pricing and condition display, prominent save and cart actions, seller profile preview, chat button, and integrated safety tips, following the clean product detail layout from the reference images",
-      "files": [
-        "frontend/src/pages/ListingDetailsPage.tsx"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "blob-storage@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-12"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-redesign-search-results-page-with-grid-based-listing-cards-elegant-filtering-ui-category-browsing-chips-and-smooth-transitions-maintaining-the-minimalist-aesthetic-across-mobile-and-desktop",
-      "featureTitle": "Redesign search results page with grid-based listing cards, elegant filtering UI, category browsing chips, and smooth transitions, maintaining the minimalist aesthetic across mobile and desktop",
-      "files": [
-        "frontend/src/pages/SearchPage.tsx"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "blob-storage@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-13"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-create-a-visually-cohesive-design-system-with-a-carefully-chosen-color-palette-avoiding-blue-and-purple-unless-specified-elegant-typography-hierarchy-consistent-spacing-scale-and-smooth-micro-interactions-that-give-the-app-a-premium-polished-feel",
-      "featureTitle": "Create a visually cohesive design system with a carefully chosen color palette (avoiding blue and purple unless specified), elegant typography hierarchy, consistent spacing scale, and smooth micro-interactions that give the app a premium, polished feel",
-      "files": [
-        "frontend/src/index.css",
-        "frontend/tailwind.config.js"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "blob-storage@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-14"
       ],
       "confidence": "high"
     }

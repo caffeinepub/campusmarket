@@ -59,7 +59,7 @@ export function MyListingCard({ listing }: MyListingCardProps) {
             size="sm"
             variant="default"
             className="flex-1"
-            onClick={() => navigate({ to: ROUTES.listingEdit(listing.id) })}
+            onClick={() => navigate({ to: ROUTES.editListing(listing.id) })}
           >
             <Edit className="mr-2 h-4 w-4" />
             Edit

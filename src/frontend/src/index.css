@@ -4,17 +4,22 @@
 
 @layer base {
   :root {
-    /* OKLCH color system - Light mode - Warm Earth Tones */
+    /* OKLCH color system - Light mode - Warm Earth Tones with Coral/Amber Accents */
     --background: oklch(98% 0.008 85);
     --foreground: oklch(18% 0.015 30);
     --card: oklch(100% 0 0);
     --card-foreground: oklch(18% 0.015 30);
     --popover: oklch(100% 0 0);
     --popover-foreground: oklch(18% 0.015 30);
-    --primary: oklch(45% 0.12 35);
-    --primary-foreground: oklch(98% 0.005 35);
-    --secondary: oklch(92% 0.015 75);
-    --secondary-foreground: oklch(22% 0.015 30);
+    
+    /* Coral primary accent */
+    --primary: oklch(62% 0.19 25);
+    --primary-foreground: oklch(98% 0.005 25);
+    
+    /* Amber secondary accent */
+    --secondary: oklch(75% 0.15 75);
+    --secondary-foreground: oklch(22% 0.015 75);
+    
     --muted: oklch(95% 0.01 75);
     --muted-foreground: oklch(50% 0.015 30);
     --accent: oklch(88% 0.08 120);
@@ -27,8 +32,14 @@
     --warning-foreground: oklch(20% 0.015 75);
     --border: oklch(88% 0.01 75);
     --input: oklch(88% 0.01 75);
-    --ring: oklch(45% 0.12 35);
+    --ring: oklch(62% 0.19 25);
     --radius: 0.75rem;
+    
+    /* Condition badge colors */
+    --condition-like-new: oklch(58% 0.14 145);
+    --condition-good: oklch(68% 0.14 75);
+    --condition-fair: oklch(68% 0.16 45);
+    --condition-well-used: oklch(52% 0.18 25);
   }
 
   .dark {
@@ -39,10 +50,10 @@
     --card-foreground: oklch(95% 0.008 75);
     --popover: oklch(15% 0.015 30);
     --popover-foreground: oklch(95% 0.008 75);
-    --primary: oklch(55% 0.12 35);
-    --primary-foreground: oklch(12% 0.015 35);
-    --secondary: oklch(22% 0.015 30);
-    --secondary-foreground: oklch(95% 0.008 75);
+    --primary: oklch(65% 0.19 25);
+    --primary-foreground: oklch(12% 0.015 25);
+    --secondary: oklch(78% 0.15 75);
+    --secondary-foreground: oklch(12% 0.015 75);
     --muted: oklch(22% 0.015 30);
     --muted-foreground: oklch(58% 0.015 75);
     --accent: oklch(28% 0.08 120);
@@ -55,7 +66,13 @@
     --warning-foreground: oklch(12% 0.015 75);
     --border: oklch(25% 0.015 30);
     --input: oklch(25% 0.015 30);
-    --ring: oklch(55% 0.12 35);
+    --ring: oklch(65% 0.19 25);
+    
+    /* Condition badge colors - dark mode */
+    --condition-like-new: oklch(58% 0.14 145);
+    --condition-good: oklch(68% 0.14 75);
+    --condition-fair: oklch(68% 0.16 45);
+    --condition-well-used: oklch(52% 0.18 25);
   }
 }
 
@@ -67,6 +84,18 @@
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', 'SF Pro Display', system-ui, sans-serif;
+  }
+}
+
+@layer components {
+  /* Primary button styles */
+  .btn-primary {
+    @apply bg-primary text-primary-foreground hover:bg-primary/90 transition-colors duration-200;
+  }
+  
+  /* Secondary button styles */
+  .btn-secondary {
+    @apply bg-secondary text-secondary-foreground hover:bg-secondary/90 transition-colors duration-200;
   }
 }
 

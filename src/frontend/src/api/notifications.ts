@@ -7,7 +7,7 @@ export function useGetNotifications() {
   const { actor, isFetching: actorFetching } = useActorClient();
 
   return useQuery<Notification[]>({
-    queryKey: queryKeys.notifications.list(),
+    queryKey: queryKeys.notifications.all(),
     queryFn: async () => {
       if (!actor) throw new Error('Actor not available');
       return actor.getNotifications();
@@ -26,7 +26,7 @@ export function useMarkNotificationAsRead() {
       return actor.markNotificationAsRead(notificationId);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.notifications.list() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.notifications.all() });
     },
   });
 }

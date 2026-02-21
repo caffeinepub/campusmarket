@@ -2,6 +2,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Button } from '@/components/ui/button';
 import { SlidersHorizontal } from 'lucide-react';
 import type { SavedFilters } from './savedSortingFiltering';
+import { SORT_OPTIONS } from '../listings/filters/sortOptions';
 
 interface SavedToolbarProps {
   filters: SavedFilters;
@@ -39,22 +40,24 @@ export function SavedToolbar({ filters, onFiltersChange }: SavedToolbarProps) {
         value={filters.sort}
         onValueChange={(value: any) => onFiltersChange({ ...filters, sort: value })}
       >
-        <SelectTrigger className="w-[160px]">
+        <SelectTrigger className="w-[180px]">
           <SelectValue placeholder="Sort by" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="recent">Recently Saved</SelectItem>
-          <SelectItem value="price-low">Price: Low to High</SelectItem>
-          <SelectItem value="price-high">Price: High to Low</SelectItem>
+          {SORT_OPTIONS.map((option) => (
+            <SelectItem key={option.value} value={option.value}>
+              {option.label}
+            </SelectItem>
+          ))}
         </SelectContent>
       </Select>
 
       {/* Clear Filters */}
-      {(filters.category || filters.sort !== 'recent') && (
+      {(filters.category || filters.sort !== 'newest') && (
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => onFiltersChange({ sort: 'recent' })}
+          onClick={() => onFiltersChange({ sort: 'newest' })}
         >
           Clear
         </Button>

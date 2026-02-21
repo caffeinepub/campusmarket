@@ -1,4 +1,4 @@
-import { useState, useMemo, memo } from 'react';
+import { useState, useMemo } from 'react';
 import { useGetSavedListings } from '../api/listings';
 import { ListingCard } from '../features/listings/components/ListingCard';
 import { useNavigate } from '@tanstack/react-router';
@@ -6,116 +6,83 @@ import { ROUTES } from '../app/routes';
 import { useOptimisticToggleSave } from '../features/listings/hooks/useOptimisticToggleSave';
 import { SavedToolbar } from '../features/saved/SavedToolbar';
 import { applySavedFilters, type SavedFilters } from '../features/saved/savedSortingFiltering';
-import type { Listing } from '../backend';
 import { Button } from '@/components/ui/button';
-import { Search, Package } from 'lucide-react';
-import { toast } from 'sonner';
-import { userFacingError } from '../utils/userFacingError';
+import { ShoppingBag } from 'lucide-react';
+import type { Listing } from '../backend';
 
 export default function SavedPage() {
-  const { data: savedListings, isLoading, isError, error } = useGetSavedListings();
+  const { data: savedListings, isLoading } = useGetSavedListings();
   const navigate = useNavigate();
-  const [filters, setFilters] = useState<SavedFilters>({ sort: 'recent' });
+  const [filters, setFilters] = useState<SavedFilters>({ sort: 'newest' });
 
-  // Apply filters with memoization
   const filteredListings = useMemo(() => {
     if (!savedListings) return [];
     return applySavedFilters(savedListings, filters);
   }, [savedListings, filters]);
 
-  if (isError && error) {
-    toast.error('Failed to load saved listings', {
-      description: userFacingError(error),
-    });
-  }
-
-  return (
-    <div className="container mx-auto px-4 py-6 pb-24 space-y-6">
-      {/* Header */}
-      <header className="space-y-1">
-        <h1 className="text-3xl font-bold tracking-tight">Saved Items</h1>
-        <p className="text-sm text-muted-foreground">
-          {savedListings ? `${savedListings.length} saved item${savedListings.length === 1 ? '' : 's'}` : 'Loading...'}
-        </p>
-      </header>
-
-      {/* Toolbar */}
-      {savedListings && savedListings.length > 0 && (
-        <SavedToolbar filters={filters} onFiltersChange={setFilters} />
-      )}
-
-      {/* Content */}
-      {isLoading ? (
-        <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
-          {Array.from({ length: 8 }).map((_, i) => (
+  if (isLoading) {
+    return (
+      <div className="container mx-auto px-4 py-6 pb-24">
+        <h1 className="text-3xl font-bold mb-6">Saved Items</h1>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          {[...Array(8)].map((_, i) => (
             <ListingCard key={i} skeleton />
           ))}
         </div>
-      ) : filteredListings.length > 0 ? (
-        <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
-          {filteredListings.map((listing, index) => (
-            <MemoizedSavedListingCard
-              key={listing.id}
-              listing={listing}
-              index={index}
-              onClick={() => navigate({ to: ROUTES.listing(listing.id) })}
-            />
-          ))}
+      </div>
+    );
+  }
+
+  if (!savedListings || savedListings.length === 0) {
+    return (
+      <div className="container mx-auto px-4 py-6 pb-24">
+        <h1 className="text-3xl font-bold mb-6">Saved Items</h1>
+        <div className="flex flex-col items-center justify-center py-16 text-center">
+          <ShoppingBag className="h-16 w-16 text-muted-foreground mb-4" />
+          <h2 className="text-2xl font-semibold mb-2">No saved items yet</h2>
+          <p className="text-muted-foreground mb-6">
+            Start saving items you're interested in to view them here
+          </p>
+          <Button onClick={() => navigate({ to: ROUTES.home })}>Browse Listings</Button>
         </div>
-      ) : (
-        <div className="flex min-h-[400px] items-center justify-center">
-          <div className="text-center space-y-4 max-w-md">
-            <div className="mx-auto w-16 h-16 rounded-full bg-muted flex items-center justify-center">
-              <Package className="h-8 w-8 text-muted-foreground" />
-            </div>
-            <div className="space-y-2">
-              <h3 className="text-xl font-semibold">No saved items yet</h3>
-              <p className="text-sm text-muted-foreground">
-                Start saving items you're interested in to view them here later
-              </p>
-            </div>
-            <div className="flex gap-2 justify-center">
-              <Button onClick={() => navigate({ to: ROUTES.search })}>
-                <Search className="h-4 w-4 mr-2" />
-                Browse Listings
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
+      </div>
+    );
+  }
+
+  return (
+    <div className="container mx-auto px-4 py-6 pb-24">
+      <h1 className="text-3xl font-bold mb-6">Saved Items</h1>
+
+      <div className="mb-6">
+        <SavedToolbar filters={filters} onFiltersChange={setFilters} />
+      </div>
+
+      <div className="mb-4">
+        <p className="text-sm text-muted-foreground">
+          {filteredListings.length} {filteredListings.length === 1 ? 'item' : 'items'} saved
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        {filteredListings.map((listing) => (
+          <SavedListingCard key={listing.id} listing={listing} />
+        ))}
+      </div>
     </div>
   );
 }
 
-const SavedListingCard = memo(function SavedListingCard({ 
-  listing, 
-  index, 
-  onClick 
-}: { 
-  listing: Listing; 
-  index: number; 
-  onClick: () => void;
-}) {
+function SavedListingCard({ listing }: { listing: Listing }) {
+  const navigate = useNavigate();
   const { isSaved, toggleSave, isLoading } = useOptimisticToggleSave(listing.id);
 
   return (
-    <div
-      className="motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-4"
-      style={{ 
-        animationDelay: `${index * 30}ms`, 
-        animationFillMode: 'backwards',
-        animationDuration: '300ms'
-      }}
-    >
-      <ListingCard
-        listing={listing}
-        onClick={onClick}
-        onSave={toggleSave}
-        isSaved={isSaved}
-        isSaving={isLoading}
-      />
-    </div>
+    <ListingCard
+      listing={listing}
+      isSaved={isSaved}
+      isSaving={isLoading}
+      onSave={toggleSave}
+      onClick={() => navigate({ to: ROUTES.listing(listing.id) })}
+    />
   );
-});
-
-const MemoizedSavedListingCard = memo(SavedListingCard);
+}

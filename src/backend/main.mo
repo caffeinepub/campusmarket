@@ -1,19 +1,27 @@
 import List "mo:core/List";
-import Text "mo:core/Text";
 import Map "mo:core/Map";
+import Time "mo:core/Time";
+import Text "mo:core/Text";
 import Array "mo:core/Array";
 import Nat32 "mo:core/Nat32";
-import Time "mo:core/Time";
 import Principal "mo:core/Principal";
 import Runtime "mo:core/Runtime";
+import Iter "mo:core/Iter";
 import MixinStorage "blob-storage/Mixin";
 import Storage "blob-storage/Storage";
 import MixinAuthorization "authorization/MixinAuthorization";
 import AccessControl "authorization/access-control";
+import Migration "migration";
 
+(with migration = Migration.run)
 actor {
-  // Persistent code stays the same
   include MixinStorage();
+
+  type MyOrder = {
+    #less;
+    #greater;
+    #equal;
+  };
 
   let accessControlState = AccessControl.initState();
   include MixinAuthorization(accessControlState);
@@ -24,6 +32,18 @@ actor {
     #draft;
   };
 
+  public type ProductCondition = {
+    #likeNew;
+    #good;
+    #fair;
+    #wellUsed;
+  };
+
+  public type PriceRange = {
+    min : Nat32;
+    max : Nat32;
+  };
+
   public type ListingImage = {
     id : Nat;
     name : Text;
@@ -32,21 +52,38 @@ actor {
     blob : ?Storage.ExternalBlob; // file reference
   };
 
+  public type LocationDetail = {
+    location_type : { #dorm; #building; #zone; #meetupSpot };
+    name : Text;
+    coordinates : (Float, Float);
+  };
+
+  public type SellerTrustIndicators = {
+    verified_student : Bool;
+    star_rating : Float;
+    transaction_count : Nat;
+    reliability_score : Float;
+  };
+
   public type Listing = {
     id : Text;
     title : Text;
     description : Text;
     price : Nat32;
-    condition : Text;
+    original_price : ?Nat32;
+    condition : ProductCondition;
     category : Text;
     status : ListingStatus;
     seller : Principal;
     department : Text;
     hostel : Text;
     campus : Text;
+    meetup_locations : [LocationDetail];
     images : [ListingImage];
     created_at : Time.Time;
     updated_at : Time.Time;
+    defect_description : ?Text;
+    trust_indicators : SellerTrustIndicators;
   };
 
   public type UserProfile = {
@@ -55,6 +92,10 @@ actor {
     hostel : Text;
     campus : Text;
     onboarding_complete : Bool;
+    verified_student : Bool;
+    star_rating : Float;
+    transaction_count : Nat;
+    reliability_score : Float;
   };
 
   public type Message = {
@@ -106,14 +147,44 @@ actor {
     title : Text;
     description : Text;
     price : Nat32;
-    condition : Text;
+    original_price : ?Nat32;
+    condition : ProductCondition;
     category : Text;
     department : Text;
     hostel : Text;
     campus : Text;
+    meetup_locations : [LocationDetail];
     images : [ListingImage];
     created_at : Time.Time;
     updated_at : Time.Time;
+    defect_description : ?Text;
+  };
+
+  public type Review = {
+    reviewer : Principal;
+    rating : Nat;
+    comment : Text;
+    created_at : Time.Time;
+  };
+
+  public type SellerReview = {
+    listing_id : Text;
+    seller : Principal;
+    reviews : [Review];
+  };
+
+  public type ProductReview = {
+    listing_id : Text;
+    seller : Principal;
+    reviews : [Review];
+    product_condition : ProductCondition;
+  };
+
+  public type Review1 = {
+    reviewer : Principal;
+    rating : Nat;
+    comment : Text;
+    created_at : Time.Time;
   };
 
   let users = Map.empty<Principal, UserProfile>();
@@ -125,8 +196,38 @@ actor {
   let sellWizardDrafts = Map.empty<Principal, List.List<SellWizardDraft>>();
   var aiAssistEnabled : ?Bool = null;
 
+  // Persistent bookkeeping data (for "future-proofing" upgrades)
+  var persistentStorageCount = 0;
+  var finalizedListingsCount = 0;
+  let newToExistingStorageCountMap = Map.empty<Text, Nat>();
+  var persistentStorageIdCounter = 0;
+
+  // Reviews state
+  let sellerReviews = Map.empty<Text, SellerReview>();
+  let productReviews = Map.empty<Text, ProductReview>();
+
   public type RecommendationType = { #personalized; #trending; #similarCategory; #collaborative };
   public type RecommendationMode = { #heuristic; #external };
+  public type ListingSortOption = {
+    #relevance;
+    #priceLowToHigh;
+    #priceHighToLow;
+    #newestFirst;
+    #popularity;
+    #conditionQuality;
+    #distance;
+    #none;
+  };
+
+  public type SearchCriteria = {
+    searchTerm : ?Text;
+    category : ?Text;
+    priceRange : ?PriceRange;
+    condition : ?ProductCondition;
+    sortOption : ListingSortOption;
+    limit : ?Nat;
+    offset : ?Nat;
+  };
 
   public type RecommendationRequest = {
     user : Principal;
@@ -134,12 +235,6 @@ actor {
     limit : Nat;
     contextListing : ?Listing;
     externalPrompt : ?Text;
-  };
-
-  public type RecommendationResponse = {
-    listings : [Listing];
-    recType : RecommendationType;
-    source : RecommendationMode;
   };
 
   type MostTradedCategoryAnalytics = {
@@ -155,7 +250,10 @@ actor {
 
   var currentRecMode = #heuristic;
 
-  public query ({ caller }) func getPersistentStorageCount() : async Nat { 0 };
+  public query ({ caller }) func getPersistentStorageCount() : async Nat { persistentStorageCount };
+
+  ////////////////////////////
+  // SELL WIZARD DRAFTS
 
   public shared ({ caller }) func saveDraft(draft : SellWizardDraft) : async () {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
@@ -247,6 +345,9 @@ actor {
     };
   };
 
+  ///////////////////////
+  // USERS
+
   public query ({ caller }) func getCallerUserProfile() : async ?UserProfile {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can view profiles");
@@ -271,6 +372,9 @@ actor {
     };
     users.add(caller, profile);
   };
+
+  /////////////////////////
+  // LISTINGS
 
   public shared ({ caller }) func addListing(listing : Listing) : async () {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
@@ -301,10 +405,12 @@ actor {
   };
 
   public query ({ caller }) func getListing(listingId : Text) : async ?Listing {
+    // Public access - anyone including guests can view listings
     finalizedListings.get(listingId);
   };
 
   public query ({ caller }) func searchListings(searchTerm : Text) : async [Listing] {
+    // Public access - anyone including guests can search listings
     let valIter = finalizedListings.values();
     let filtered = valIter.filter(
       func(listing) {
@@ -315,8 +421,85 @@ actor {
   };
 
   public query ({ caller }) func getListings() : async [Listing] {
+    // Public access - anyone including guests can view all listings
     finalizedListings.values().toArray();
   };
+
+  // Filtering and Shorting
+  func matchesCriteria(listing : Listing, criteria : SearchCriteria) : Bool {
+    // Check search term
+    let matchesSearchTerm = switch (criteria.searchTerm) {
+      case (null) { true };
+      case (?searchTerm) {
+        listing.title.contains(#text searchTerm) or listing.description.contains(#text searchTerm);
+      };
+    };
+    if (not matchesSearchTerm) { return false };
+
+    // Filter by category
+    let matchesCategory = switch (criteria.category) {
+      case (null) { true };
+      case (?category) { listing.category == category };
+    };
+    if (not matchesCategory) { return false };
+
+    // Price range
+    let matchesPriceRange = switch (criteria.priceRange) {
+      case (null) { true };
+      case (?priceRange) {
+        listing.price >= priceRange.min and listing.price <= priceRange.max
+      };
+    };
+    if (not matchesPriceRange) { return false };
+
+    // Product condition
+    let matchesCondition = switch (criteria.condition) {
+      case (null) { true };
+      case (?condition) { listing.condition == condition };
+    };
+    matchesCondition;
+  };
+
+  func compareListings(a : Listing, b : Listing, sortOption : ListingSortOption) : MyOrder {
+    switch (sortOption) {
+      case (#priceLowToHigh) {
+        if (a.price < b.price) { #less } else if (a.price > b.price) { #greater } else {
+          #equal;
+        };
+      };
+      case (#priceHighToLow) {
+        if (a.price > b.price) { #less } else if (a.price < b.price) { #greater } else {
+          #equal;
+        };
+      };
+      case (#newestFirst) {
+        if (a.created_at > b.created_at) { #less } else if (a.created_at < b.created_at) {
+          #greater;
+        } else { #equal };
+      };
+      case (_) { #equal };
+    };
+  };
+
+  public query ({ caller }) func filterAndSortListings(searchCriteria : SearchCriteria) : async [Listing] {
+    // Public access - anyone including guests can filter and sort listings
+    let allListings = finalizedListings.values().toArray();
+    let filtered = allListings.filter(func(listing) { matchesCriteria(listing, searchCriteria) });
+
+    let sorted = filtered.sort(func(a, b) { compareListings(a, b, searchCriteria.sortOption) });
+
+    let limited = switch (searchCriteria.limit) {
+      case (null) { sorted };
+      case (?lim) {
+        sorted.sliceToArray(0, lim); // Limit number of results
+      };
+    };
+
+    limited;
+  };
+
+  /////////////////////
+  // Listings (continued)
 
   public shared ({ caller }) func updateListing(listingId : Text, updatedListing : Listing) : async () {
     if (not AccessControl.hasPermission(accessControlState, caller, #user)) {
@@ -426,6 +609,9 @@ actor {
       };
     };
   };
+
+  ///////////////////////
+  // CHAT THREADS
 
   public shared ({ caller }) func createChatThread(thread : ChatThread) : async () {
     if (not AccessControl.hasPermission(accessControlState, caller, #user)) {
@@ -557,6 +743,9 @@ actor {
     );
   };
 
+  //////////////////////
+  // NOTIFICATIONS
+
   public shared ({ caller }) func markNotificationAsRead(notificationId : Text) : async () {
     if (not AccessControl.hasPermission(accessControlState, caller, #user)) {
       Runtime.trap("Unauthorized: Only users can mark notifications as read");
@@ -594,6 +783,9 @@ actor {
       }
     );
   };
+
+  //////////////////////
+  // REPORTS
 
   public shared ({ caller }) func createReport(report : Report) : async () {
     if (not AccessControl.hasPermission(accessControlState, caller, #user)) {
@@ -637,16 +829,39 @@ actor {
     };
   };
 
-  public shared ({ caller }) func fetchRecommendations(request : RecommendationRequest) : async RecommendationResponse {
+  ////////////////////
+  // RECOMMENDATIONS
+
+  func getFilteredAndSortedListings(criteria : SearchCriteria) : [Listing] {
+    let filtered = finalizedListings.values().toArray().filter(
+      func(listing) {
+        matchesCriteria(listing, criteria);
+      }
+    );
+    filtered.sort(
+      func(a, b) {
+        compareListings(a, b, criteria.sortOption);
+      }
+    );
+  };
+
+  public shared ({ caller }) func fetchRecommendations(request : RecommendationRequest) : async [Listing] {
+    if (not AccessControl.hasPermission(accessControlState, caller, #user)) {
+      Runtime.trap("Unauthorized: Only users can fetch recommendations");
+    };
+
+    if (request.user != caller and not AccessControl.isAdmin(accessControlState, caller)) {
+      Runtime.trap("Unauthorized: Can only fetch recommendations for yourself");
+    };
+
     switch (request.recType) {
-      case (#personalized) { heuristicTrending(request) };
       case (#trending) { heuristicTrending(request) };
       case (#similarCategory) { heuristicSimilarCategory(request) };
-      case (#collaborative) { heuristicCollaborative(request) };
+      case (_) { [] };
     };
   };
 
-  func heuristicTrending(request : RecommendationRequest) : RecommendationResponse {
+  func heuristicTrending(request : RecommendationRequest) : [Listing] {
     let allListings = finalizedListings.values().toArray();
     let activeListings = allListings.filter(
       func(l) {
@@ -656,21 +871,15 @@ actor {
         };
       }
     );
-
     let limited = if (activeListings.size() > request.limit) {
       activeListings.sliceToArray(0, request.limit);
     } else {
       activeListings;
     };
-
-    {
-      listings = limited;
-      recType = request.recType;
-      source = #heuristic;
-    };
+    limited;
   };
 
-  func heuristicSimilarCategory(request : RecommendationRequest) : RecommendationResponse {
+  func heuristicSimilarCategory(request : RecommendationRequest) : [Listing] {
     let allListings = finalizedListings.values().toArray();
 
     let filtered = switch (request.contextListing) {
@@ -694,28 +903,7 @@ actor {
     } else {
       filtered;
     };
-
-    {
-      listings = limited;
-      recType = #similarCategory;
-      source = #heuristic;
-    };
-  };
-
-  func heuristicCollaborative(request : RecommendationRequest) : RecommendationResponse {
-    let allListings = finalizedListings.values().toArray();
-
-    let limited = if (allListings.size() >= request.limit) {
-      allListings.sliceToArray(0, request.limit);
-    } else {
-      allListings;
-    };
-
-    {
-      listings = limited;
-      recType = #collaborative;
-      source = #heuristic;
-    };
+    limited;
   };
 
   public shared ({ caller }) func setRecommendationMode(mode : RecommendationMode) : async () {
@@ -743,6 +931,10 @@ actor {
   };
 
   public query ({ caller }) func getInsightsAnalytics() : async InsightsAnalytics {
+    if (not AccessControl.hasPermission(accessControlState, caller, #user)) {
+      Runtime.trap("Unauthorized: Only users can view analytics");
+    };
+
     let listings = finalizedListings.values().toArray();
     if (listings.size() == 0) {
       return {
@@ -764,5 +956,260 @@ actor {
       mostPopularCategory;
       mostTradedCategory;
     };
+  };
+
+  /////////////////////
+  // REVIEWS
+
+  public shared ({ caller }) func addSellerReview(listingId : Text, seller : Principal, review : Review) : async () {
+    if (not AccessControl.hasPermission(accessControlState, caller, #user)) {
+      Runtime.trap("Unauthorized: Only users can add reviews");
+    };
+
+    if (review.reviewer != caller) {
+      Runtime.trap("Unauthorized: Cannot add review as another user");
+    };
+
+    // Verify the listing exists and seller matches
+    switch (finalizedListings.get(listingId)) {
+      case (null) {
+        Runtime.trap("Listing not found");
+      };
+      case (?listing) {
+        if (listing.seller != seller) {
+          Runtime.trap("Seller mismatch: provided seller does not match listing seller");
+        };
+      };
+    };
+
+    let sellerReviewsList = switch (sellerReviews.get(listingId)) {
+      case (null) {
+        let newSellerReview : SellerReview = {
+          listing_id = listingId;
+          seller = seller;
+          reviews = [review];
+        };
+        sellerReviews.add(listingId, newSellerReview);
+        ();
+      };
+      case (?existingSellerReview) {
+        let updatedReview = {
+          listing_id = existingSellerReview.listing_id;
+          seller = existingSellerReview.seller;
+          reviews = existingSellerReview.reviews.concat([review]);
+        };
+        sellerReviews.add(listingId, updatedReview);
+        ();
+      };
+    };
+  };
+
+  public shared ({ caller }) func addProductReview(listingId : Text, seller : Principal, review : Review, productCondition : ProductCondition) : async () {
+    if (not AccessControl.hasPermission(accessControlState, caller, #user)) {
+      Runtime.trap("Unauthorized: Only users can add reviews");
+    };
+
+    if (review.reviewer != caller) {
+      Runtime.trap("Unauthorized: Cannot add review as another user");
+    };
+
+    // Verify the listing exists and seller matches
+    switch (finalizedListings.get(listingId)) {
+      case (null) {
+        Runtime.trap("Listing not found");
+      };
+      case (?listing) {
+        if (listing.seller != seller) {
+          Runtime.trap("Seller mismatch: provided seller does not match listing seller");
+        };
+      };
+    };
+
+    let productReviewsList = switch (productReviews.get(listingId)) {
+      case (null) {
+        let newProductReview : ProductReview = {
+          listing_id = listingId;
+          seller = seller;
+          reviews = [review];
+          product_condition = productCondition;
+        };
+        productReviews.add(listingId, newProductReview);
+        ();
+      };
+      case (?existingProductReview) {
+        let updatedReview = {
+          listing_id = existingProductReview.listing_id;
+          seller = existingProductReview.seller;
+          reviews = existingProductReview.reviews.concat([review]);
+          product_condition = existingProductReview.product_condition;
+        };
+        productReviews.add(listingId, updatedReview);
+        ();
+      };
+    };
+  };
+
+  public shared ({ caller }) func updateReview(listingId : Text, reviewIndex : Nat, updatedReview : Review, isProductReview : Bool) : async () {
+    if (not AccessControl.hasPermission(accessControlState, caller, #user)) {
+      Runtime.trap("Unauthorized: Only users can update reviews");
+    };
+
+    if (updatedReview.reviewer != caller) {
+      Runtime.trap("Unauthorized: Cannot update review as another user");
+    };
+
+    if (isProductReview) {
+      switch (productReviews.get(listingId)) {
+        case (null) {
+          Runtime.trap("Review not found");
+        };
+        case (?existingReviews) {
+          if (reviewIndex >= existingReviews.reviews.size()) {
+            Runtime.trap("Review index out of range");
+          };
+
+          // Verify ownership
+          if (existingReviews.reviews[reviewIndex].reviewer != caller) {
+            Runtime.trap("Unauthorized: Can only update your own reviews");
+          };
+
+          let updatedReviews = Array.tabulate(
+            existingReviews.reviews.size(),
+            func(i) {
+              if (i == reviewIndex) { updatedReview } else {
+                existingReviews.reviews[i];
+              };
+            },
+          );
+          let updatedProductReview = {
+            listing_id = existingReviews.listing_id;
+            seller = existingReviews.seller;
+            reviews = updatedReviews;
+            product_condition = existingReviews.product_condition;
+          };
+          productReviews.add(listingId, updatedProductReview);
+        };
+      };
+    } else {
+      switch (sellerReviews.get(listingId)) {
+        case (null) {
+          Runtime.trap("Review not found");
+        };
+        case (?existingSellerReviews) {
+          if (reviewIndex >= existingSellerReviews.reviews.size()) {
+            Runtime.trap("Review index out of range");
+          };
+
+          // Verify ownership
+          if (existingSellerReviews.reviews[reviewIndex].reviewer != caller) {
+            Runtime.trap("Unauthorized: Can only update your own reviews");
+          };
+
+          let updatedSellerReviews = Array.tabulate(
+            existingSellerReviews.reviews.size(),
+            func(i) {
+              if (i == reviewIndex) { updatedReview } else {
+                existingSellerReviews.reviews[i];
+              };
+            },
+          );
+          sellerReviews.add(
+            listingId,
+            {
+              listing_id = existingSellerReviews.listing_id;
+              seller = existingSellerReviews.seller;
+              reviews = updatedSellerReviews;
+            },
+          );
+        };
+      };
+    };
+  };
+
+  public shared ({ caller }) func deleteReview(listingId : Text, reviewIndex : Nat, isProductReview : Bool) : async () {
+    if (not AccessControl.hasPermission(accessControlState, caller, #user)) {
+      Runtime.trap("Unauthorized: Only users can delete reviews");
+    };
+
+    if (isProductReview) {
+      switch (productReviews.get(listingId)) {
+        case (null) {
+          Runtime.trap("Review not found");
+        };
+        case (?existingReviews) {
+          if (reviewIndex >= existingReviews.reviews.size()) {
+            Runtime.trap("Review index out of range");
+          };
+
+          // Verify ownership or admin
+          if (existingReviews.reviews[reviewIndex].reviewer != caller and not AccessControl.isAdmin(accessControlState, caller)) {
+            Runtime.trap("Unauthorized: Can only delete your own reviews");
+          };
+
+          let filteredReviews = Array.tabulate(
+            existingReviews.reviews.size() - 1,
+            func(i) {
+              if (i < reviewIndex) {
+                existingReviews.reviews[i];
+              } else {
+                existingReviews.reviews[i + 1];
+              };
+            }
+          );
+
+          let updatedProductReview = {
+            listing_id = existingReviews.listing_id;
+            seller = existingReviews.seller;
+            reviews = filteredReviews;
+            product_condition = existingReviews.product_condition;
+          };
+          productReviews.add(listingId, updatedProductReview);
+        };
+      };
+    } else {
+      switch (sellerReviews.get(listingId)) {
+        case (null) {
+          Runtime.trap("Review not found");
+        };
+        case (?existingSellerReviews) {
+          if (reviewIndex >= existingSellerReviews.reviews.size()) {
+            Runtime.trap("Review index out of range");
+          };
+
+          // Verify ownership or admin
+          if (existingSellerReviews.reviews[reviewIndex].reviewer != caller and not AccessControl.isAdmin(accessControlState, caller)) {
+            Runtime.trap("Unauthorized: Can only delete your own reviews");
+          };
+
+          let filteredReviews = Array.tabulate(
+            existingSellerReviews.reviews.size() - 1,
+            func(i) {
+              if (i < reviewIndex) {
+                existingSellerReviews.reviews[i];
+              } else {
+                existingSellerReviews.reviews[i + 1];
+              };
+            }
+          );
+
+          let updatedSellerReview = {
+            listing_id = existingSellerReviews.listing_id;
+            seller = existingSellerReviews.seller;
+            reviews = filteredReviews;
+          };
+          sellerReviews.add(listingId, updatedSellerReview);
+        };
+      };
+    };
+  };
+
+  public query ({ caller }) func getSellerReviews(listingId : Text) : async ?SellerReview {
+    // Public access - anyone including guests can view reviews
+    sellerReviews.get(listingId);
+  };
+
+  public query ({ caller }) func getProductReviews(listingId : Text) : async ?ProductReview {
+    // Public access - anyone including guests can view reviews
+    productReviews.get(listingId);
   };
 };

@@ -25,6 +25,28 @@ export const ListingStatus = IDL.Variant({
   'draft' : IDL.Null,
 });
 export const Time = IDL.Int;
+export const SellerTrustIndicators = IDL.Record({
+  'verified_student' : IDL.Bool,
+  'star_rating' : IDL.Float64,
+  'reliability_score' : IDL.Float64,
+  'transaction_count' : IDL.Nat,
+});
+export const LocationDetail = IDL.Record({
+  'name' : IDL.Text,
+  'location_type' : IDL.Variant({
+    'dorm' : IDL.Null,
+    'zone' : IDL.Null,
+    'building' : IDL.Null,
+    'meetupSpot' : IDL.Null,
+  }),
+  'coordinates' : IDL.Tuple(IDL.Float64, IDL.Float64),
+});
+export const ProductCondition = IDL.Variant({
+  'fair' : IDL.Null,
+  'good' : IDL.Null,
+  'likeNew' : IDL.Null,
+  'wellUsed' : IDL.Null,
+});
 export const ExternalBlob = IDL.Vec(IDL.Nat8);
 export const ListingImage = IDL.Record({
   'id' : IDL.Nat,
@@ -38,15 +60,19 @@ export const Listing = IDL.Record({
   'status' : ListingStatus,
   'title' : IDL.Text,
   'updated_at' : Time,
+  'trust_indicators' : SellerTrustIndicators,
   'description' : IDL.Text,
   'created_at' : Time,
   'seller' : IDL.Principal,
+  'meetup_locations' : IDL.Vec(LocationDetail),
+  'defect_description' : IDL.Opt(IDL.Text),
   'category' : IDL.Text,
   'campus' : IDL.Text,
   'department' : IDL.Text,
+  'original_price' : IDL.Opt(IDL.Nat32),
   'price' : IDL.Nat32,
   'hostel' : IDL.Text,
-  'condition' : IDL.Text,
+  'condition' : ProductCondition,
   'images' : IDL.Vec(ListingImage),
 });
 export const Message = IDL.Record({
@@ -56,6 +82,12 @@ export const Message = IDL.Record({
   'read_by_seller' : IDL.Bool,
   'read_by_buyer' : IDL.Bool,
   'timestamp' : Time,
+});
+export const Review = IDL.Record({
+  'created_at' : Time,
+  'comment' : IDL.Text,
+  'rating' : IDL.Nat,
+  'reviewer' : IDL.Principal,
 });
 export const UserRole = IDL.Variant({
   'admin' : IDL.Null,
@@ -93,21 +125,40 @@ export const RecommendationRequest = IDL.Record({
   'externalPrompt' : IDL.Opt(IDL.Text),
   'contextListing' : IDL.Opt(Listing),
 });
+export const PriceRange = IDL.Record({ 'max' : IDL.Nat32, 'min' : IDL.Nat32 });
+export const ListingSortOption = IDL.Variant({
+  'none' : IDL.Null,
+  'priceLowToHigh' : IDL.Null,
+  'distance' : IDL.Null,
+  'newestFirst' : IDL.Null,
+  'relevance' : IDL.Null,
+  'priceHighToLow' : IDL.Null,
+  'conditionQuality' : IDL.Null,
+  'popularity' : IDL.Null,
+});
+export const SearchCriteria = IDL.Record({
+  'offset' : IDL.Opt(IDL.Nat),
+  'priceRange' : IDL.Opt(PriceRange),
+  'limit' : IDL.Opt(IDL.Nat),
+  'searchTerm' : IDL.Opt(IDL.Text),
+  'sortOption' : ListingSortOption,
+  'category' : IDL.Opt(IDL.Text),
+  'condition' : IDL.Opt(ProductCondition),
+});
 export const RecommendationMode = IDL.Variant({
   'heuristic' : IDL.Null,
   'external' : IDL.Null,
 });
-export const RecommendationResponse = IDL.Record({
-  'recType' : RecommendationType,
-  'source' : RecommendationMode,
-  'listings' : IDL.Vec(Listing),
-});
 export const UserProfile = IDL.Record({
   'principal' : IDL.Principal,
+  'verified_student' : IDL.Bool,
   'onboarding_complete' : IDL.Bool,
+  'star_rating' : IDL.Float64,
   'campus' : IDL.Text,
+  'reliability_score' : IDL.Float64,
   'department' : IDL.Text,
   'hostel' : IDL.Text,
+  'transaction_count' : IDL.Nat,
 });
 export const SellWizardDraft = IDL.Record({
   'id' : IDL.Text,
@@ -115,12 +166,15 @@ export const SellWizardDraft = IDL.Record({
   'updated_at' : Time,
   'description' : IDL.Text,
   'created_at' : Time,
+  'meetup_locations' : IDL.Vec(LocationDetail),
+  'defect_description' : IDL.Opt(IDL.Text),
   'category' : IDL.Text,
   'campus' : IDL.Text,
   'department' : IDL.Text,
+  'original_price' : IDL.Opt(IDL.Nat32),
   'price' : IDL.Nat32,
   'hostel' : IDL.Text,
-  'condition' : IDL.Text,
+  'condition' : ProductCondition,
   'images' : IDL.Vec(ListingImage),
 });
 export const MostTradedCategoryAnalytics = IDL.Record({
@@ -144,6 +198,17 @@ export const Notification = IDL.Record({
   'user' : IDL.Principal,
   'timestamp' : Time,
   'notif_type' : NotificationType,
+});
+export const ProductReview = IDL.Record({
+  'reviews' : IDL.Vec(Review),
+  'seller' : IDL.Principal,
+  'product_condition' : ProductCondition,
+  'listing_id' : IDL.Text,
+});
+export const SellerReview = IDL.Record({
+  'reviews' : IDL.Vec(Review),
+  'seller' : IDL.Principal,
+  'listing_id' : IDL.Text,
 });
 
 export const idlService = IDL.Service({
@@ -176,16 +241,28 @@ export const idlService = IDL.Service({
   '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
   'addListing' : IDL.Func([Listing], [], []),
   'addMessage' : IDL.Func([IDL.Text, Message], [], []),
+  'addProductReview' : IDL.Func(
+      [IDL.Text, IDL.Principal, Review, ProductCondition],
+      [],
+      [],
+    ),
+  'addSellerReview' : IDL.Func([IDL.Text, IDL.Principal, Review], [], []),
   'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
   'createChatThread' : IDL.Func([ChatThread], [], []),
   'createReport' : IDL.Func([Report], [], []),
   'deleteDraft' : IDL.Func([IDL.Text], [], []),
   'deleteListing' : IDL.Func([IDL.Text], [], []),
   'deleteReport' : IDL.Func([IDL.Text], [], []),
+  'deleteReview' : IDL.Func([IDL.Text, IDL.Nat, IDL.Bool], [], []),
   'fetchRecommendations' : IDL.Func(
       [RecommendationRequest],
-      [RecommendationResponse],
+      [IDL.Vec(Listing)],
       [],
+    ),
+  'filterAndSortListings' : IDL.Func(
+      [SearchCriteria],
+      [IDL.Vec(Listing)],
+      ['query'],
     ),
   'getAIRecommendationMode' : IDL.Func([], [RecommendationMode], ['query']),
   'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
@@ -204,8 +281,14 @@ export const idlService = IDL.Service({
     ),
   'getNotifications' : IDL.Func([], [IDL.Vec(Notification)], ['query']),
   'getPersistentStorageCount' : IDL.Func([], [IDL.Nat], ['query']),
+  'getProductReviews' : IDL.Func(
+      [IDL.Text],
+      [IDL.Opt(ProductReview)],
+      ['query'],
+    ),
   'getReports' : IDL.Func([], [IDL.Vec(Report)], ['query']),
   'getSavedListings' : IDL.Func([], [IDL.Vec(Listing)], ['query']),
+  'getSellerReviews' : IDL.Func([IDL.Text], [IDL.Opt(SellerReview)], ['query']),
   'getUserProfile' : IDL.Func(
       [IDL.Principal],
       [IDL.Opt(UserProfile)],
@@ -223,6 +306,7 @@ export const idlService = IDL.Service({
   'setRecommendationMode' : IDL.Func([RecommendationMode], [], []),
   'unsaveListing' : IDL.Func([IDL.Text], [], []),
   'updateListing' : IDL.Func([IDL.Text, Listing], [], []),
+  'updateReview' : IDL.Func([IDL.Text, IDL.Nat, Review, IDL.Bool], [], []),
   'updateTypingStatus' : IDL.Func([IDL.Text, IDL.Bool], [], []),
 });
 
@@ -246,6 +330,28 @@ export const idlFactory = ({ IDL }) => {
     'draft' : IDL.Null,
   });
   const Time = IDL.Int;
+  const SellerTrustIndicators = IDL.Record({
+    'verified_student' : IDL.Bool,
+    'star_rating' : IDL.Float64,
+    'reliability_score' : IDL.Float64,
+    'transaction_count' : IDL.Nat,
+  });
+  const LocationDetail = IDL.Record({
+    'name' : IDL.Text,
+    'location_type' : IDL.Variant({
+      'dorm' : IDL.Null,
+      'zone' : IDL.Null,
+      'building' : IDL.Null,
+      'meetupSpot' : IDL.Null,
+    }),
+    'coordinates' : IDL.Tuple(IDL.Float64, IDL.Float64),
+  });
+  const ProductCondition = IDL.Variant({
+    'fair' : IDL.Null,
+    'good' : IDL.Null,
+    'likeNew' : IDL.Null,
+    'wellUsed' : IDL.Null,
+  });
   const ExternalBlob = IDL.Vec(IDL.Nat8);
   const ListingImage = IDL.Record({
     'id' : IDL.Nat,
@@ -259,15 +365,19 @@ export const idlFactory = ({ IDL }) => {
     'status' : ListingStatus,
     'title' : IDL.Text,
     'updated_at' : Time,
+    'trust_indicators' : SellerTrustIndicators,
     'description' : IDL.Text,
     'created_at' : Time,
     'seller' : IDL.Principal,
+    'meetup_locations' : IDL.Vec(LocationDetail),
+    'defect_description' : IDL.Opt(IDL.Text),
     'category' : IDL.Text,
     'campus' : IDL.Text,
     'department' : IDL.Text,
+    'original_price' : IDL.Opt(IDL.Nat32),
     'price' : IDL.Nat32,
     'hostel' : IDL.Text,
-    'condition' : IDL.Text,
+    'condition' : ProductCondition,
     'images' : IDL.Vec(ListingImage),
   });
   const Message = IDL.Record({
@@ -277,6 +387,12 @@ export const idlFactory = ({ IDL }) => {
     'read_by_seller' : IDL.Bool,
     'read_by_buyer' : IDL.Bool,
     'timestamp' : Time,
+  });
+  const Review = IDL.Record({
+    'created_at' : Time,
+    'comment' : IDL.Text,
+    'rating' : IDL.Nat,
+    'reviewer' : IDL.Principal,
   });
   const UserRole = IDL.Variant({
     'admin' : IDL.Null,
@@ -314,21 +430,40 @@ export const idlFactory = ({ IDL }) => {
     'externalPrompt' : IDL.Opt(IDL.Text),
     'contextListing' : IDL.Opt(Listing),
   });
+  const PriceRange = IDL.Record({ 'max' : IDL.Nat32, 'min' : IDL.Nat32 });
+  const ListingSortOption = IDL.Variant({
+    'none' : IDL.Null,
+    'priceLowToHigh' : IDL.Null,
+    'distance' : IDL.Null,
+    'newestFirst' : IDL.Null,
+    'relevance' : IDL.Null,
+    'priceHighToLow' : IDL.Null,
+    'conditionQuality' : IDL.Null,
+    'popularity' : IDL.Null,
+  });
+  const SearchCriteria = IDL.Record({
+    'offset' : IDL.Opt(IDL.Nat),
+    'priceRange' : IDL.Opt(PriceRange),
+    'limit' : IDL.Opt(IDL.Nat),
+    'searchTerm' : IDL.Opt(IDL.Text),
+    'sortOption' : ListingSortOption,
+    'category' : IDL.Opt(IDL.Text),
+    'condition' : IDL.Opt(ProductCondition),
+  });
   const RecommendationMode = IDL.Variant({
     'heuristic' : IDL.Null,
     'external' : IDL.Null,
   });
-  const RecommendationResponse = IDL.Record({
-    'recType' : RecommendationType,
-    'source' : RecommendationMode,
-    'listings' : IDL.Vec(Listing),
-  });
   const UserProfile = IDL.Record({
     'principal' : IDL.Principal,
+    'verified_student' : IDL.Bool,
     'onboarding_complete' : IDL.Bool,
+    'star_rating' : IDL.Float64,
     'campus' : IDL.Text,
+    'reliability_score' : IDL.Float64,
     'department' : IDL.Text,
     'hostel' : IDL.Text,
+    'transaction_count' : IDL.Nat,
   });
   const SellWizardDraft = IDL.Record({
     'id' : IDL.Text,
@@ -336,12 +471,15 @@ export const idlFactory = ({ IDL }) => {
     'updated_at' : Time,
     'description' : IDL.Text,
     'created_at' : Time,
+    'meetup_locations' : IDL.Vec(LocationDetail),
+    'defect_description' : IDL.Opt(IDL.Text),
     'category' : IDL.Text,
     'campus' : IDL.Text,
     'department' : IDL.Text,
+    'original_price' : IDL.Opt(IDL.Nat32),
     'price' : IDL.Nat32,
     'hostel' : IDL.Text,
-    'condition' : IDL.Text,
+    'condition' : ProductCondition,
     'images' : IDL.Vec(ListingImage),
   });
   const MostTradedCategoryAnalytics = IDL.Record({
@@ -365,6 +503,17 @@ export const idlFactory = ({ IDL }) => {
     'user' : IDL.Principal,
     'timestamp' : Time,
     'notif_type' : NotificationType,
+  });
+  const ProductReview = IDL.Record({
+    'reviews' : IDL.Vec(Review),
+    'seller' : IDL.Principal,
+    'product_condition' : ProductCondition,
+    'listing_id' : IDL.Text,
+  });
+  const SellerReview = IDL.Record({
+    'reviews' : IDL.Vec(Review),
+    'seller' : IDL.Principal,
+    'listing_id' : IDL.Text,
   });
   
   return IDL.Service({
@@ -397,16 +546,28 @@ export const idlFactory = ({ IDL }) => {
     '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
     'addListing' : IDL.Func([Listing], [], []),
     'addMessage' : IDL.Func([IDL.Text, Message], [], []),
+    'addProductReview' : IDL.Func(
+        [IDL.Text, IDL.Principal, Review, ProductCondition],
+        [],
+        [],
+      ),
+    'addSellerReview' : IDL.Func([IDL.Text, IDL.Principal, Review], [], []),
     'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
     'createChatThread' : IDL.Func([ChatThread], [], []),
     'createReport' : IDL.Func([Report], [], []),
     'deleteDraft' : IDL.Func([IDL.Text], [], []),
     'deleteListing' : IDL.Func([IDL.Text], [], []),
     'deleteReport' : IDL.Func([IDL.Text], [], []),
+    'deleteReview' : IDL.Func([IDL.Text, IDL.Nat, IDL.Bool], [], []),
     'fetchRecommendations' : IDL.Func(
         [RecommendationRequest],
-        [RecommendationResponse],
+        [IDL.Vec(Listing)],
         [],
+      ),
+    'filterAndSortListings' : IDL.Func(
+        [SearchCriteria],
+        [IDL.Vec(Listing)],
+        ['query'],
       ),
     'getAIRecommendationMode' : IDL.Func([], [RecommendationMode], ['query']),
     'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
@@ -425,8 +586,18 @@ export const idlFactory = ({ IDL }) => {
       ),
     'getNotifications' : IDL.Func([], [IDL.Vec(Notification)], ['query']),
     'getPersistentStorageCount' : IDL.Func([], [IDL.Nat], ['query']),
+    'getProductReviews' : IDL.Func(
+        [IDL.Text],
+        [IDL.Opt(ProductReview)],
+        ['query'],
+      ),
     'getReports' : IDL.Func([], [IDL.Vec(Report)], ['query']),
     'getSavedListings' : IDL.Func([], [IDL.Vec(Listing)], ['query']),
+    'getSellerReviews' : IDL.Func(
+        [IDL.Text],
+        [IDL.Opt(SellerReview)],
+        ['query'],
+      ),
     'getUserProfile' : IDL.Func(
         [IDL.Principal],
         [IDL.Opt(UserProfile)],
@@ -444,6 +615,7 @@ export const idlFactory = ({ IDL }) => {
     'setRecommendationMode' : IDL.Func([RecommendationMode], [], []),
     'unsaveListing' : IDL.Func([IDL.Text], [], []),
     'updateListing' : IDL.Func([IDL.Text, Listing], [], []),
+    'updateReview' : IDL.Func([IDL.Text, IDL.Nat, Review, IDL.Bool], [], []),
     'updateTypingStatus' : IDL.Func([IDL.Text, IDL.Bool], [], []),
   });
 };

@@ -2,15 +2,24 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
 import type { SellWizardFormData } from '../sellWizardTypes';
-import { CATEGORIES, CONDITIONS } from '../sellWizardTypes';
+import { CATEGORIES } from '../sellWizardTypes';
+import { ProductCondition } from '../../../../backend';
 import type { ValidationErrors } from '../sellWizardValidation';
 
 interface BasicInfoStepProps {
   data: SellWizardFormData;
   errors: ValidationErrors;
-  onChange: (field: keyof SellWizardFormData, value: string) => void;
+  onChange: (field: keyof SellWizardFormData, value: any) => void;
 }
+
+const CONDITIONS = [
+  { value: ProductCondition.likeNew, label: 'Like New' },
+  { value: ProductCondition.good, label: 'Good' },
+  { value: ProductCondition.fair, label: 'Fair' },
+  { value: ProductCondition.wellUsed, label: 'Well-Used' },
+];
 
 export function BasicInfoStep({ data, errors, onChange }: BasicInfoStepProps) {
   return (
@@ -51,19 +60,34 @@ export function BasicInfoStep({ data, errors, onChange }: BasicInfoStepProps) {
 
         <div className="space-y-2">
           <Label htmlFor="condition">Condition *</Label>
-          <Select value={data.condition} onValueChange={(value) => onChange('condition', value)}>
+          <Select value={data.condition as string} onValueChange={(value) => onChange('condition', value as ProductCondition)}>
             <SelectTrigger id="condition" className={errors.condition ? 'border-destructive' : ''}>
               <SelectValue placeholder="Select condition" />
             </SelectTrigger>
             <SelectContent>
               {CONDITIONS.map((condition) => (
-                <SelectItem key={condition} value={condition}>
-                  {condition}
+                <SelectItem key={condition.value} value={condition.value}>
+                  {condition.label}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
           {errors.condition && <p className="text-sm text-destructive">{errors.condition}</p>}
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="defect_description">Item Wear & Defects (Optional)</Label>
+          <Textarea
+            id="defect_description"
+            placeholder="Describe any issues, scratches, or wear..."
+            value={data.defect_description || ''}
+            onChange={(e) => onChange('defect_description', e.target.value)}
+            rows={3}
+            maxLength={500}
+          />
+          <p className="text-xs text-muted-foreground">
+            {(data.defect_description || '').length} / 500 characters
+          </p>
         </div>
       </CardContent>
     </Card>

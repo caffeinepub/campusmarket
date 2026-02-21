@@ -1,6 +1,5 @@
 import { memo } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Heart, ShoppingCart } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -8,6 +7,8 @@ import type { Listing } from '../../../backend';
 import { ListingImage } from './ListingImage';
 import { useCart } from '../../cart/hooks/useCart';
 import { toast } from 'sonner';
+import { ConditionBadge } from './ConditionBadge';
+import { SellerRating } from '../../trustSafety/badges/SellerRating';
 
 interface ListingCardProps {
   listing?: Listing;
@@ -16,6 +17,7 @@ interface ListingCardProps {
   isSaving?: boolean;
   onClick?: () => void;
   skeleton?: boolean;
+  isFeatured?: boolean;
 }
 
 export const ListingCard = memo(function ListingCard({ 
@@ -24,7 +26,8 @@ export const ListingCard = memo(function ListingCard({
   isSaved, 
   isSaving, 
   onClick, 
-  skeleton 
+  skeleton,
+  isFeatured = false
 }: ListingCardProps) {
   const { isInCart, add: addToCart, remove: removeFromCart } = useCart();
 
@@ -37,6 +40,7 @@ export const ListingCard = memo(function ListingCard({
   const firstImage = listing.images[0];
   const timeAgo = getTimeAgo(Number(listing.created_at) / 1_000_000);
   const inCart = isInCart(listing.id);
+  const hasOriginalPrice = listing.original_price && listing.original_price > listing.price;
 
   const handleCartToggle = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -51,12 +55,15 @@ export const ListingCard = memo(function ListingCard({
 
   return (
     <Card
-      className="group cursor-pointer overflow-hidden border-border/40 bg-card shadow-xs motion-safe:transition-all motion-safe:hover:shadow-soft motion-safe:hover:-translate-y-0.5 active:scale-[0.98]"
+      className={cn(
+        "group cursor-pointer overflow-hidden border-border/40 bg-card shadow-xs motion-safe:transition-all motion-safe:hover:shadow-card motion-safe:hover:-translate-y-1 active:scale-[0.98]",
+        isFeatured && "border-primary/40 shadow-primary/10 ring-2 ring-primary/20"
+      )}
       onClick={onClick}
     >
-      <div className="relative aspect-square overflow-hidden bg-muted/30">
+      <div className="relative aspect-[4/3] overflow-hidden bg-muted/30">
         {firstImage ? (
-          <div className="h-full w-full motion-safe:transition-transform motion-safe:duration-500 motion-safe:group-hover:scale-110">
+          <div className="h-full w-full motion-safe:transition-transform motion-safe:duration-500 motion-safe:group-hover:scale-105">
             <ListingImage image={firstImage} alt={listing.title} className="h-full w-full object-cover" lazy={true} />
           </div>
         ) : (
@@ -91,19 +98,29 @@ export const ListingCard = memo(function ListingCard({
             <ShoppingCart
               className={cn(
                 'h-4 w-4 motion-safe:transition-all',
-                inCart ? 'fill-accent text-accent scale-110' : 'text-foreground'
+                inCart ? 'fill-primary text-primary scale-110' : 'text-foreground'
               )}
             />
           </Button>
         </div>
-        <Badge variant="secondary" className="absolute bottom-2 left-2 text-xs backdrop-blur-sm bg-background/90 border-0 shadow-sm">
-          {listing.condition}
-        </Badge>
+        <div className="absolute bottom-2 left-2">
+          <ConditionBadge condition={listing.condition} className="backdrop-blur-sm bg-background/90 shadow-sm" />
+        </div>
       </div>
-      <CardContent className="p-3.5">
-        <h3 className="line-clamp-2 font-semibold text-sm leading-snug mb-1">{listing.title}</h3>
-        <p className="text-xl font-bold text-foreground mb-1">₹{listing.price}</p>
-        <div className="flex items-center justify-between text-2xs text-muted-foreground">
+      <CardContent className="p-4 space-y-2">
+        <h3 className="line-clamp-2 font-semibold text-base leading-snug">{listing.title}</h3>
+        <div className="flex items-baseline gap-2">
+          <p className="text-2xl font-bold text-foreground">₹{listing.price}</p>
+          {hasOriginalPrice && (
+            <p className="text-sm text-muted-foreground line-through">₹{listing.original_price}</p>
+          )}
+        </div>
+        <SellerRating 
+          rating={listing.trust_indicators.star_rating} 
+          transactionCount={listing.trust_indicators.transaction_count}
+          showCount={false}
+        />
+        <div className="flex items-center justify-between text-xs text-muted-foreground pt-1">
           <span className="truncate">{listing.hostel}</span>
           <span className="shrink-0 ml-2">{timeAgo}</span>
         </div>
@@ -115,13 +132,14 @@ export const ListingCard = memo(function ListingCard({
 function ListingCardSkeleton() {
   return (
     <Card className="overflow-hidden border-border/40 bg-card shadow-xs">
-      <div className="relative aspect-square overflow-hidden bg-muted/30">
+      <div className="relative aspect-[4/3] overflow-hidden bg-muted/30">
         <div className="shimmer h-full w-full" />
       </div>
-      <CardContent className="p-3.5 space-y-2">
-        <div className="shimmer h-4 w-3/4 rounded" />
-        <div className="shimmer h-5 w-1/2 rounded" />
-        <div className="flex items-center justify-between">
+      <CardContent className="p-4 space-y-2">
+        <div className="shimmer h-5 w-3/4 rounded" />
+        <div className="shimmer h-7 w-1/2 rounded" />
+        <div className="shimmer h-4 w-2/3 rounded" />
+        <div className="flex items-center justify-between pt-1">
           <div className="shimmer h-3 w-1/3 rounded" />
           <div className="shimmer h-3 w-1/4 rounded" />
         </div>

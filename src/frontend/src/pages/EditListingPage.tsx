@@ -1,70 +1,77 @@
 import { useParams, useNavigate } from '@tanstack/react-router';
 import { useGetListing, useUpdateListing } from '../api/listings';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { ArrowLeft, Loader2 } from 'lucide-react';
 import { EditListingForm } from '../features/listings/edit/EditListingForm';
-import { Loader2 } from 'lucide-react';
-import { toast } from 'sonner';
 import { ROUTES } from '../app/routes';
-import { AppShell } from '../app/layout/AppShell';
+import { toast } from 'sonner';
 import type { Listing } from '../backend';
 
 export default function EditListingPage() {
-  const { listingId } = useParams({ strict: false });
+  const { listingId } = useParams({ from: '/protected/listing/$listingId/edit' });
   const navigate = useNavigate();
-  const { data: listing, isLoading, error } = useGetListing(listingId || '');
-  const updateListingMutation = useUpdateListing();
-
-  const handleSubmit = async (updatedListing: Listing) => {
-    if (!listingId) return;
-
-    try {
-      await updateListingMutation.mutateAsync({ listingId, listing: updatedListing });
-      navigate({ to: ROUTES.listing(listingId) });
-    } catch (error) {
-      console.error('Failed to update listing:', error);
-      toast.error('Failed to update listing. Please try again.');
-      throw error;
-    }
-  };
-
-  const handleCancel = () => {
-    if (listingId) {
-      navigate({ to: ROUTES.listing(listingId) });
-    } else {
-      navigate({ to: ROUTES.myListings });
-    }
-  };
+  const { data: listing, isLoading, error } = useGetListing(listingId);
+  const updateListing = useUpdateListing();
 
   if (isLoading) {
     return (
-      <AppShell>
-        <div className="flex min-h-[50vh] items-center justify-center">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        </div>
-      </AppShell>
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
     );
   }
 
   if (error || !listing) {
     return (
-      <AppShell>
-        <div className="container mx-auto p-4">
-          <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-4 text-center">
-            <p className="text-destructive">Failed to load listing. Please try again.</p>
-          </div>
-        </div>
-      </AppShell>
+      <div className="container mx-auto px-4 py-6">
+        <Card>
+          <CardContent className="p-6">
+            <p className="text-destructive">Failed to load listing</p>
+          </CardContent>
+        </Card>
+      </div>
     );
   }
 
+  const handleSubmit = async (updatedListing: Listing) => {
+    try {
+      await updateListing.mutateAsync({
+        listingId: listing.id,
+        listing: updatedListing,
+      });
+      toast.success('Listing updated successfully');
+      navigate({ to: ROUTES.listing(listing.id) });
+    } catch (error) {
+      toast.error('Failed to update listing');
+      console.error(error);
+    }
+  };
+
+  const handleCancel = () => {
+    navigate({ to: ROUTES.listing(listing.id) });
+  };
+
   return (
-    <AppShell>
-      <div className="container mx-auto max-w-3xl p-4 pb-24">
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold">Edit Listing</h1>
-          <p className="text-muted-foreground">Update your listing details</p>
-        </div>
-        <EditListingForm listing={listing} onSubmit={handleSubmit} onCancel={handleCancel} />
-      </div>
-    </AppShell>
+    <div className="container mx-auto px-4 py-6 pb-24 max-w-3xl">
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={() => navigate({ to: ROUTES.listing(listing.id) })}
+        className="mb-4 -ml-2"
+      >
+        <ArrowLeft className="mr-2 h-4 w-4" />
+        Back to Listing
+      </Button>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-2xl">Edit Listing</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <EditListingForm listing={listing} onSubmit={handleSubmit} onCancel={handleCancel} />
+        </CardContent>
+      </Card>
+    </div>
   );
 }

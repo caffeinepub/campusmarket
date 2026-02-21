@@ -28,6 +28,8 @@ const NotificationsPage = lazy(() => import('../pages/NotificationsPage'));
 const ProfilePage = lazy(() => import('../pages/ProfilePage'));
 const InsightsPage = lazy(() => import('../pages/InsightsPage'));
 const DevQaChecklistPage = lazy(() => import('../pages/DevQaChecklistPage'));
+const ComparisonPage = lazy(() => import('../pages/ComparisonPage'));
+const RecentlyViewedPage = lazy(() => import('../pages/RecentlyViewedPage'));
 
 // Root route with layout
 const rootRoute = createRootRoute({
@@ -228,21 +230,46 @@ const insightsRoute = createRoute({
   ),
 });
 
+const compareRoute = createRoute({
+  getParentRoute: () => protectedLayoutRoute,
+  path: '/compare',
+  component: () => (
+    <AppShell>
+      <Suspense fallback={<PageSkeleton />}>
+        <ComparisonPage />
+      </Suspense>
+    </AppShell>
+  ),
+});
+
+const recentlyViewedRoute = createRoute({
+  getParentRoute: () => protectedLayoutRoute,
+  path: '/recently-viewed',
+  component: () => (
+    <AppShell>
+      <Suspense fallback={<PageSkeleton />}>
+        <RecentlyViewedPage />
+      </Suspense>
+    </AppShell>
+  ),
+});
+
 const onboardingRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/onboarding',
   component: OnboardingPage,
 });
 
-// Dev-only QA checklist route with guard
 const devQaRoute = createRoute({
   getParentRoute: () => protectedLayoutRoute,
-  path: '/dev/qa',
+  path: '/dev-qa',
   component: () => (
     <DevOnlyRouteGate>
-      <Suspense fallback={<PageSkeleton />}>
-        <DevQaChecklistPage />
-      </Suspense>
+      <AppShell>
+        <Suspense fallback={<PageSkeleton />}>
+          <DevQaChecklistPage />
+        </Suspense>
+      </AppShell>
     </DevOnlyRouteGate>
   ),
 });
@@ -267,6 +294,8 @@ const routeTree = rootRoute.addChildren([
     notificationsRoute,
     profileRoute,
     insightsRoute,
+    compareRoute,
+    recentlyViewedRoute,
     devQaRoute,
   ]),
 ]);

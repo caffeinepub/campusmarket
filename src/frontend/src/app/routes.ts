@@ -6,7 +6,6 @@ export const ROUTES = {
   search: '/search',
   sell: '/sell',
   listing: (id: string) => `/listing/${id}`,
-  listingEdit: (id: string) => `/listing/${id}/edit`,
   chats: '/chats',
   chatThread: (id: string) => `/chat/${id}`,
   saved: '/saved',
@@ -14,18 +13,21 @@ export const ROUTES = {
   checkout: '/checkout',
   checkoutConfirmation: '/checkout/confirmation',
   myListings: '/my-listings',
+  editListing: (id: string) => `/listing/${id}/edit`,
   notifications: '/notifications',
   profile: '/profile',
   insights: '/insights',
-  devQa: '/dev/qa',
+  devQa: '/dev-qa',
+  compare: '/compare',
+  recentlyViewed: '/recently-viewed',
 } as const;
 
-export function getListingIdFromPath(path: string): string | null {
+export function parseListingId(path: string): string | null {
   const match = path.match(/\/listing\/([^/]+)/);
   return match ? match[1] : null;
 }
 
-export function getThreadIdFromPath(path: string): string | null {
+export function parseChatThreadId(path: string): string | null {
   const match = path.match(/\/chat\/([^/]+)/);
   return match ? match[1] : null;
 }

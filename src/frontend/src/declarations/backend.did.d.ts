@@ -31,15 +31,19 @@ export interface Listing {
   'status' : ListingStatus,
   'title' : string,
   'updated_at' : Time,
+  'trust_indicators' : SellerTrustIndicators,
   'description' : string,
   'created_at' : Time,
   'seller' : Principal,
+  'meetup_locations' : Array<LocationDetail>,
+  'defect_description' : [] | [string],
   'category' : string,
   'campus' : string,
   'department' : string,
+  'original_price' : [] | [number],
   'price' : number,
   'hostel' : string,
-  'condition' : string,
+  'condition' : ProductCondition,
   'images' : Array<ListingImage>,
 }
 export interface ListingImage {
@@ -49,9 +53,25 @@ export interface ListingImage {
   'blob' : [] | [ExternalBlob],
   'name' : string,
 }
+export type ListingSortOption = { 'none' : null } |
+  { 'priceLowToHigh' : null } |
+  { 'distance' : null } |
+  { 'newestFirst' : null } |
+  { 'relevance' : null } |
+  { 'priceHighToLow' : null } |
+  { 'conditionQuality' : null } |
+  { 'popularity' : null };
 export type ListingStatus = { 'active' : null } |
   { 'sold' : null } |
   { 'draft' : null };
+export interface LocationDetail {
+  'name' : string,
+  'location_type' : { 'dorm' : null } |
+    { 'zone' : null } |
+    { 'building' : null } |
+    { 'meetupSpot' : null },
+  'coordinates' : [number, number],
+}
 export interface Message {
   'id' : string,
   'content' : string,
@@ -76,6 +96,17 @@ export type NotificationType = { 'listing_sold' : { 'listing_id' : string } } |
   { 'new_message' : { 'listing_id' : string } } |
   { 'price_change' : { 'listing_id' : string } } |
   { 'systemNotification' : {} };
+export interface PriceRange { 'max' : number, 'min' : number }
+export type ProductCondition = { 'fair' : null } |
+  { 'good' : null } |
+  { 'likeNew' : null } |
+  { 'wellUsed' : null };
+export interface ProductReview {
+  'reviews' : Array<Review>,
+  'seller' : Principal,
+  'product_condition' : ProductCondition,
+  'listing_id' : string,
+}
 export type RecommendationMode = { 'heuristic' : null } |
   { 'external' : null };
 export interface RecommendationRequest {
@@ -84,11 +115,6 @@ export interface RecommendationRequest {
   'limit' : bigint,
   'externalPrompt' : [] | [string],
   'contextListing' : [] | [Listing],
-}
-export interface RecommendationResponse {
-  'recType' : RecommendationType,
-  'source' : RecommendationMode,
-  'listings' : Array<Listing>,
 }
 export type RecommendationType = { 'similarCategory' : null } |
   { 'trending' : null } |
@@ -101,27 +127,60 @@ export interface Report {
   'reporter' : Principal,
   'reason' : string,
 }
+export interface Review {
+  'created_at' : Time,
+  'comment' : string,
+  'rating' : bigint,
+  'reviewer' : Principal,
+}
+export interface SearchCriteria {
+  'offset' : [] | [bigint],
+  'priceRange' : [] | [PriceRange],
+  'limit' : [] | [bigint],
+  'searchTerm' : [] | [string],
+  'sortOption' : ListingSortOption,
+  'category' : [] | [string],
+  'condition' : [] | [ProductCondition],
+}
 export interface SellWizardDraft {
   'id' : string,
   'title' : string,
   'updated_at' : Time,
   'description' : string,
   'created_at' : Time,
+  'meetup_locations' : Array<LocationDetail>,
+  'defect_description' : [] | [string],
   'category' : string,
   'campus' : string,
   'department' : string,
+  'original_price' : [] | [number],
   'price' : number,
   'hostel' : string,
-  'condition' : string,
+  'condition' : ProductCondition,
   'images' : Array<ListingImage>,
+}
+export interface SellerReview {
+  'reviews' : Array<Review>,
+  'seller' : Principal,
+  'listing_id' : string,
+}
+export interface SellerTrustIndicators {
+  'verified_student' : boolean,
+  'star_rating' : number,
+  'reliability_score' : number,
+  'transaction_count' : bigint,
 }
 export type Time = bigint;
 export interface UserProfile {
   'principal' : Principal,
+  'verified_student' : boolean,
   'onboarding_complete' : boolean,
+  'star_rating' : number,
   'campus' : string,
+  'reliability_score' : number,
   'department' : string,
   'hostel' : string,
+  'transaction_count' : bigint,
 }
 export type UserRole = { 'admin' : null } |
   { 'user' : null } |
@@ -156,16 +215,20 @@ export interface _SERVICE {
   '_initializeAccessControlWithSecret' : ActorMethod<[string], undefined>,
   'addListing' : ActorMethod<[Listing], undefined>,
   'addMessage' : ActorMethod<[string, Message], undefined>,
+  'addProductReview' : ActorMethod<
+    [string, Principal, Review, ProductCondition],
+    undefined
+  >,
+  'addSellerReview' : ActorMethod<[string, Principal, Review], undefined>,
   'assignCallerUserRole' : ActorMethod<[Principal, UserRole], undefined>,
   'createChatThread' : ActorMethod<[ChatThread], undefined>,
   'createReport' : ActorMethod<[Report], undefined>,
   'deleteDraft' : ActorMethod<[string], undefined>,
   'deleteListing' : ActorMethod<[string], undefined>,
   'deleteReport' : ActorMethod<[string], undefined>,
-  'fetchRecommendations' : ActorMethod<
-    [RecommendationRequest],
-    RecommendationResponse
-  >,
+  'deleteReview' : ActorMethod<[string, bigint, boolean], undefined>,
+  'fetchRecommendations' : ActorMethod<[RecommendationRequest], Array<Listing>>,
+  'filterAndSortListings' : ActorMethod<[SearchCriteria], Array<Listing>>,
   'getAIRecommendationMode' : ActorMethod<[], RecommendationMode>,
   'getCallerUserProfile' : ActorMethod<[], [] | [UserProfile]>,
   'getCallerUserRole' : ActorMethod<[], UserRole>,
@@ -179,8 +242,10 @@ export interface _SERVICE {
   'getListingsBySeller' : ActorMethod<[Principal], Array<Listing>>,
   'getNotifications' : ActorMethod<[], Array<Notification>>,
   'getPersistentStorageCount' : ActorMethod<[], bigint>,
+  'getProductReviews' : ActorMethod<[string], [] | [ProductReview]>,
   'getReports' : ActorMethod<[], Array<Report>>,
   'getSavedListings' : ActorMethod<[], Array<Listing>>,
+  'getSellerReviews' : ActorMethod<[string], [] | [SellerReview]>,
   'getUserProfile' : ActorMethod<[Principal], [] | [UserProfile]>,
   'isAIAssistEnabled' : ActorMethod<[], boolean>,
   'isAIFeatureEnabled' : ActorMethod<[], boolean>,
@@ -194,6 +259,7 @@ export interface _SERVICE {
   'setRecommendationMode' : ActorMethod<[RecommendationMode], undefined>,
   'unsaveListing' : ActorMethod<[string], undefined>,
   'updateListing' : ActorMethod<[string, Listing], undefined>,
+  'updateReview' : ActorMethod<[string, bigint, Review, boolean], undefined>,
   'updateTypingStatus' : ActorMethod<[string, boolean], undefined>,
 }
 export declare const idlService: IDL.ServiceClass;

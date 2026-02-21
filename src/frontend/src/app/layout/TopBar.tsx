@@ -16,15 +16,17 @@ import { clearCachedProfile } from '../../features/auth/profileCache';
 import { disableDevGuestMode } from '../../features/auth/devGuestMode';
 import { useAuth } from '../../features/auth/plugin/useAuth';
 import { clearAuthSession } from '../../features/auth/plugin/authStorage';
+import { ThemeToggle } from '../../features/theme/ThemeToggle';
 
 interface TopBarProps {
   title?: string;
   showBack?: boolean;
+  onBackClick?: () => void;
   showSearch?: boolean;
   actions?: ReactNode;
 }
 
-export function TopBar({ title = 'CampusMarket', showBack, showSearch, actions }: TopBarProps) {
+export function TopBar({ title = 'CampusMarket', showBack, onBackClick, showSearch, actions }: TopBarProps) {
   const navigate = useNavigate();
   const { session, signOut } = useAuth();
   const queryClient = useQueryClient();
@@ -38,6 +40,14 @@ export function TopBar({ title = 'CampusMarket', showBack, showSearch, actions }
     disableDevGuestMode();
     clearAuthSession();
     navigate({ to: ROUTES.login });
+  };
+
+  const handleBackClick = () => {
+    if (onBackClick) {
+      onBackClick();
+    } else {
+      window.history.back();
+    }
   };
 
   const getUserInitials = () => {
@@ -58,7 +68,7 @@ export function TopBar({ title = 'CampusMarket', showBack, showSearch, actions }
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => window.history.back()}
+              onClick={handleBackClick}
               className="motion-safe:transition-all hover:bg-muted/50"
             >
               <ArrowLeft className="h-5 w-5" />
@@ -83,6 +93,8 @@ export function TopBar({ title = 'CampusMarket', showBack, showSearch, actions }
 
           {isAuthenticated && (
             <>
+              <ThemeToggle />
+              
               <Button
                 variant="ghost"
                 size="icon"
@@ -111,6 +123,9 @@ export function TopBar({ title = 'CampusMarket', showBack, showSearch, actions }
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => navigate({ to: ROUTES.saved })}>
                     Saved Items
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate({ to: ROUTES.recentlyViewed })}>
+                    Recently Viewed
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   {import.meta.env.DEV && (

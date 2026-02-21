@@ -1,63 +1,81 @@
 import type { SellWizardFormData } from './sellWizardTypes';
+import { MIN_IMAGES } from './sellWizardTypes';
 
 export interface ValidationErrors {
-  title?: string;
-  description?: string;
-  price?: string;
-  condition?: string;
-  category?: string;
+  [key: string]: string;
 }
 
 export function validateBasicInfo(data: SellWizardFormData): ValidationErrors {
   const errors: ValidationErrors = {};
 
-  if (!data.title.trim()) {
-    errors.title = 'Title is required';
-  } else if (data.title.length < 3) {
+  if (!data.title || data.title.trim().length < 3) {
     errors.title = 'Title must be at least 3 characters';
-  } else if (data.title.length > 100) {
-    errors.title = 'Title must be less than 100 characters';
   }
 
   if (!data.category) {
-    errors.category = 'Category is required';
+    errors.category = 'Please select a category';
   }
 
   if (!data.condition) {
-    errors.condition = 'Condition is required';
+    errors.condition = 'Please select a condition';
   }
 
   return errors;
 }
 
-export function validatePricingDetails(data: SellWizardFormData): ValidationErrors {
+export function validatePricing(data: SellWizardFormData): ValidationErrors {
   const errors: ValidationErrors = {};
 
-  if (!data.price.trim()) {
-    errors.price = 'Price is required';
-  } else {
-    const priceNum = parseFloat(data.price);
-    if (isNaN(priceNum) || priceNum <= 0) {
-      errors.price = 'Price must be a positive number';
-    } else if (priceNum > 1000000) {
-      errors.price = 'Price must be less than ₹10,00,000';
+  const price = Number(data.price);
+  if (!data.price || isNaN(price) || price <= 0) {
+    errors.price = 'Please enter a valid price';
+  }
+
+  if (data.original_price) {
+    const originalPrice = Number(data.original_price);
+    if (isNaN(originalPrice) || originalPrice < price) {
+      errors.original_price = 'Original price must be greater than or equal to current price';
     }
   }
 
-  if (!data.description.trim()) {
-    errors.description = 'Description is required';
-  } else if (data.description.length < 10) {
+  if (!data.description || data.description.trim().length < 10) {
     errors.description = 'Description must be at least 10 characters';
-  } else if (data.description.length > 1000) {
+  }
+
+  if (data.description.length > 1000) {
     errors.description = 'Description must be less than 1000 characters';
   }
 
   return errors;
 }
 
+export function validateLocation(data: SellWizardFormData): ValidationErrors {
+  const errors: ValidationErrors = {};
+
+  if (data.meetup_locations.length === 0) {
+    errors.meetup_locations = 'Please select at least one meetup location';
+  }
+
+  return errors;
+}
+
+export function validateImages(data: SellWizardFormData): ValidationErrors {
+  const errors: ValidationErrors = {};
+
+  if (data.images.length < MIN_IMAGES) {
+    errors.images = `Please add at least ${MIN_IMAGES} photo`;
+  }
+
+  return errors;
+}
+
 export function validateAllSteps(data: SellWizardFormData): ValidationErrors {
-  return {
+  const errors: ValidationErrors = {
     ...validateBasicInfo(data),
-    ...validatePricingDetails(data),
+    ...validatePricing(data),
+    ...validateLocation(data),
+    ...validateImages(data),
   };
+
+  return errors;
 }
