@@ -1,0 +1,424 @@
+{
+  "kind": "implementation_plan",
+  "version": "1.0",
+  "title": "Complete frontend rebuild with sleek marketplace UI",
+  "requirements": [
+    {
+      "id": "REQ-1",
+      "summary": "Redesign the entire frontend with a sleek, minimalist e-commerce aesthetic inspired by reference images, featuring clean product cards, smooth navigation, elegant typography, generous white space, and a cohesive visual identity for mobile and desktop",
+      "acceptanceCriteria": [
+        "Mobile UI matches the clean card-based layout and navigation patterns from image-10.png",
+        "Desktop UI reflects the spacious, elegant layout style from image-11.png",
+        "Responsive design adapts smoothly between mobile and desktop breakpoints",
+        "Typography, spacing, and color choices create a premium, cohesive brand feel",
+        "All interactive elements have smooth transitions and hover states"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/index.css",
+          "operation": "modify",
+          "description": "Update global CSS with new color palette (warm earth tones avoiding blue/purple), refined typography scale using modern font stack, consistent spacing utilities, smooth transition defaults, and refined theme variables matching the premium minimalist aesthetic from reference images"
+        },
+        {
+          "path": "frontend/tailwind.config.js",
+          "operation": "modify",
+          "description": "Configure Tailwind with custom color palette (warm neutrals, earth tones), refined typography settings, consistent spacing scale, smooth animation timing functions, and responsive breakpoint adjustments to support the sleek design system"
+        },
+        {
+          "path": "frontend/src/features/listings/components/ListingCard.tsx",
+          "operation": "modify",
+          "description": "Redesign ListingCard component to match the clean product card style from image-10.png with refined image handling, elegant typography hierarchy, smooth hover transitions, proper spacing, and prominent save/cart actions. Use generated images from frontend/public/assets/generated/ as fallback placeholders when needed"
+        },
+        {
+          "path": "frontend/src/app/layout/AppShell.tsx",
+          "operation": "modify",
+          "description": "Update AppShell layout to provide refined structure with proper header spacing, elegant transitions, and cohesive wrapper styling that supports both mobile card-based layouts and desktop spacious designs"
+        },
+        {
+          "path": "frontend/src/app/layout/TopBar.tsx",
+          "operation": "modify",
+          "description": "Redesign TopBar with minimalist aesthetic, refined navigation controls, elegant search integration, and smooth transitions matching reference image styling"
+        },
+        {
+          "path": "frontend/src/app/layout/BottomTabs.tsx",
+          "operation": "modify",
+          "description": "Update BottomTabs with cleaner icon styling, smooth active state transitions, refined spacing, and cohesive visual treatment matching the sleek design system"
+        }
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "summary": "Implement campus verification system supporting both .edu email verification and manual campus selection during onboarding, storing campus affiliation in user profiles",
+      "acceptanceCriteria": [
+        "Onboarding flow includes campus selection or email verification step",
+        "Backend validates .edu email domains",
+        "User profile stores verified campus affiliation",
+        "UI clearly indicates verification status"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/OnboardingPage.tsx",
+          "operation": "modify",
+          "description": "Add email verification field with .edu domain detection, integrate verification status display, and provide fallback manual campus selection option. Include visual feedback for verified status with elegant badge styling matching the new design system"
+        },
+        {
+          "path": "frontend/src/features/trustSafety/badges/BadgesRow.tsx",
+          "operation": "modify",
+          "description": "Add campus verification badge display with refined styling to show verified campus affiliation status on user profiles and listings"
+        }
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "summary": "Enable sellers to upload multiple photos per listing (up to 5 images), manage pricing, mark items as sold, and control inventory status with an intuitive listing management interface",
+      "acceptanceCriteria": [
+        "Listing creation supports uploading up to 5 photos",
+        "Sellers can reorder photos via drag-and-drop",
+        "Sold status can be toggled on listings",
+        "My Listings page shows inventory status clearly"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/features/listings/sellWizard/ImagePicker.tsx",
+          "operation": "modify",
+          "description": "Ensure ImagePicker supports up to 5 images with drag-and-drop reordering, refined upload UI with progress indicators, elegant preview styling, and smooth transitions. Use the blob-storage component for handling image uploads. Verify the component's usage instructions before implementing"
+        },
+        {
+          "path": "frontend/src/features/listings/myListings/MyListingCard.tsx",
+          "operation": "modify",
+          "description": "Add sold status toggle button with optimistic UI updates, inventory status badge display, and elegant status indicators matching the new design aesthetic"
+        },
+        {
+          "path": "frontend/src/pages/MyListingsPage.tsx",
+          "operation": "modify",
+          "description": "Update My Listings page to clearly show inventory status with refined status badges, sold/active filtering options, and clean card-based layout matching the new design system"
+        }
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "summary": "Build advanced search and filtering UI with category-specific filters for campus needs including textbooks, furniture, electronics, clothing, dorm essentials, course materials, and move-out sales, with sort options and price ranges",
+      "acceptanceCriteria": [
+        "Search page includes category chips for all campus-specific categories",
+        "Filters support price range, condition, and campus location",
+        "Sort options include price, date posted, and relevance",
+        "Filter state persists across page navigation"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/SearchPage.tsx",
+          "operation": "modify",
+          "description": "Redesign search page with refined filtering UI, elegant category chip layout matching reference designs, smooth filter transitions, and clean results grid. Add campus-specific categories (textbooks, furniture, electronics, clothing, dorm essentials, course materials, move-out sales)"
+        },
+        {
+          "path": "frontend/src/features/search/components/SearchFiltersBar.tsx",
+          "operation": "modify",
+          "description": "Add campus location filter, condition filter, and refine price range controls with elegant UI styling, smooth interactions, and clear filter state display"
+        },
+        {
+          "path": "frontend/src/features/search/components/CategoryBrowseChips.tsx",
+          "operation": "modify",
+          "description": "Update category chips to include all campus-specific categories with refined styling, smooth selection transitions, and clear active state indicators"
+        },
+        {
+          "path": "frontend/src/features/search/searchFiltering.ts",
+          "operation": "modify",
+          "description": "Extend filtering logic to support campus location, condition filtering, and ensure all campus-specific categories are properly handled in filter application"
+        },
+        {
+          "path": "frontend/src/store/persistence/homeFilters.ts",
+          "operation": "modify",
+          "description": "Extend filter persistence to include campus location and condition filters, ensuring state persists across navigation"
+        }
+      ]
+    },
+    {
+      "id": "REQ-5",
+      "summary": "Create comprehensive user profile pages displaying seller ratings, listing history, verification badges, campus affiliation, and trust indicators",
+      "acceptanceCriteria": [
+        "Profile page shows user's active and sold listings",
+        "Seller rating displayed prominently with review count",
+        "Verification badges visible for verified users",
+        "Campus affiliation shown on profile"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/ProfilePage.tsx",
+          "operation": "modify",
+          "description": "Redesign profile page with elegant layout showing seller rating prominently, listing history tabs (active/sold), verification badges, campus affiliation display, and trust indicators. Use clean card-based sections with refined typography and spacing matching the new design system"
+        },
+        {
+          "path": "frontend/src/features/trustSafety/badges/BadgesRow.tsx",
+          "operation": "modify",
+          "description": "Ensure verification badges and trust indicators are displayed prominently on profile page with refined styling and proper spacing"
+        }
+      ]
+    },
+    {
+      "id": "REQ-6",
+      "summary": "Implement buyer-seller messaging system with thread-based conversations, typing indicators, read receipts, and quick offer buttons for seamless communication",
+      "acceptanceCriteria": [
+        "Users can initiate chat from listing detail pages",
+        "Chat interface shows typing indicators",
+        "Read receipts indicate when messages are seen",
+        "Quick offer button pre-fills common message templates"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/ChatThreadPage.tsx",
+          "operation": "modify",
+          "description": "Redesign chat interface with refined message bubbles, elegant typing indicator display, clear read receipt indicators, and smooth message transitions. Add quick offer button integration matching the sleek design aesthetic"
+        },
+        {
+          "path": "frontend/src/features/chat/components/QuickOfferButton.tsx",
+          "operation": "modify",
+          "description": "Refine quick offer button styling with elegant hover states and smooth interactions, ensuring it stands out while maintaining design cohesion"
+        },
+        {
+          "path": "frontend/src/features/chat/typing/useTypingStatus.ts",
+          "operation": "modify",
+          "description": "Ensure typing status updates are properly debounced and integrated with the backend for smooth real-time indicator display"
+        },
+        {
+          "path": "frontend/src/pages/ChatsInboxPage.tsx",
+          "operation": "modify",
+          "description": "Redesign inbox page with clean thread list layout, refined ThreadListItem styling, and elegant empty state matching the new design system"
+        },
+        {
+          "path": "frontend/src/features/chat/components/ThreadListItem.tsx",
+          "operation": "modify",
+          "description": "Update thread list item with refined styling, clear unread indicators, elegant timestamp display, and smooth hover transitions"
+        }
+      ]
+    },
+    {
+      "id": "REQ-8",
+      "summary": "Implement urgent sale tags for end-of-semester listings, allowing sellers to mark listings as time-sensitive and prioritizing them in search results and feeds",
+      "acceptanceCriteria": [
+        "Sellers can toggle 'Urgent Sale' flag on listings",
+        "Urgent sale badge displays prominently on listing cards",
+        "Urgent listings appear higher in search results",
+        "Feed algorithms prioritize urgent sale items"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/features/listings/components/ListingCard.tsx",
+          "operation": "modify",
+          "description": "Add urgent sale badge display with prominent styling (e.g., accent color, border, or corner badge) that stands out while maintaining design cohesion"
+        },
+        {
+          "path": "frontend/src/features/listings/sellWizard/SellWizardForm.tsx",
+          "operation": "modify",
+          "description": "Add urgent sale toggle option in the sell wizard with clear description of its purpose and effect, styled elegantly within the form flow"
+        },
+        {
+          "path": "frontend/src/features/discovery/feeds/feedHeuristics.ts",
+          "operation": "modify",
+          "description": "Update feed algorithms to prioritize urgent sale listings by boosting their ranking scores in trending and recommended feeds"
+        },
+        {
+          "path": "frontend/src/features/search/searchFiltering.ts",
+          "operation": "modify",
+          "description": "Update sort logic to prioritize urgent sale listings when sorting by relevance or date, ensuring they appear higher in search results"
+        }
+      ]
+    },
+    {
+      "id": "REQ-9",
+      "summary": "Add campus meetup location suggestions feature that recommends safe, public meeting spots on campus when buyers and sellers arrange transactions",
+      "acceptanceCriteria": [
+        "Listing detail or chat UI suggests common campus meetup spots",
+        "Suggestions include library, student center, main quad, etc.",
+        "Users can select from suggested locations in chat",
+        "Safety tips accompany meetup suggestions"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/ListingDetailsPage.tsx",
+          "operation": "modify",
+          "description": "Add meetup location suggestions section with list of common campus spots (library, student center, main quad, dining hall) styled elegantly with location icons and selection mechanism"
+        },
+        {
+          "path": "frontend/src/pages/ChatThreadPage.tsx",
+          "operation": "modify",
+          "description": "Integrate meetup location suggestions into chat interface as selectable chips or quick actions, allowing users to easily share location suggestions in messages"
+        },
+        {
+          "path": "frontend/src/features/trustSafety/safetyTips/SafetyTipsBanner.tsx",
+          "operation": "modify",
+          "description": "Update safety tips banner to include meetup location guidance and ensure it displays alongside location suggestions with cohesive styling"
+        }
+      ]
+    },
+    {
+      "id": "REQ-10",
+      "summary": "Implement saved searches feature allowing users to save search queries with filters and receive notifications when new listings match their saved criteria",
+      "acceptanceCriteria": [
+        "Users can save current search query and filters",
+        "Saved searches accessible from user profile or search page",
+        "Backend checks new listings against saved searches",
+        "Notifications sent when matches are found"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/SearchPage.tsx",
+          "operation": "modify",
+          "description": "Add save search button to search page that captures current query and filters, styled elegantly with prominent placement and clear call-to-action"
+        },
+        {
+          "path": "frontend/src/pages/ProfilePage.tsx",
+          "operation": "modify",
+          "description": "Add saved searches section to profile page displaying list of saved queries with options to view, edit, or delete each search. Use clean card-based layout"
+        },
+        {
+          "path": "frontend/src/store/persistence/storageKeys.ts",
+          "operation": "modify",
+          "description": "Add storage key constant for saved searches persistence"
+        },
+        {
+          "path": "frontend/src/store/persistence/savedSearches.ts",
+          "operation": "create",
+          "description": "Create persistence module for managing saved search queries in localStorage, including CRUD operations and list retrieval with proper typing"
+        },
+        {
+          "path": "frontend/src/features/notifications/components/NotificationRow.tsx",
+          "operation": "modify",
+          "description": "Add notification type handling for saved search matches with appropriate icon and message formatting"
+        }
+      ]
+    },
+    {
+      "id": "REQ-11",
+      "summary": "Redesign home page with a premium dashboard layout featuring personalized listing recommendations, quick action cards, recently viewed items strip, trending section, and campus-specific widgets, all styled with the new minimalist aesthetic",
+      "acceptanceCriteria": [
+        "Home page uses card-based layout matching reference designs",
+        "Personalized recommendations section displays relevant listings",
+        "Quick actions provide shortcuts to key features",
+        "Recently viewed strip shows horizontal scrollable items",
+        "Design matches premium e-commerce aesthetic from uploaded images"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/HomePage.tsx",
+          "operation": "modify",
+          "description": "Redesign home page with refined card-based dashboard layout matching image-10.png mobile aesthetic and image-11.png desktop spaciousness. Integrate hero banner using frontend/public/assets/generated/hero-banner.dim_1200x400.png, ensure all sections (stats, quick actions, widgets, saved items, recommendations, trending) use cohesive spacing and elegant typography"
+        },
+        {
+          "path": "frontend/src/features/home/components/DashboardQuickActions.tsx",
+          "operation": "modify",
+          "description": "Refine quick action cards with elegant icons, refined typography, smooth hover transitions, and clear visual hierarchy matching the sleek design system"
+        },
+        {
+          "path": "frontend/src/features/home/components/DashboardStatsRow.tsx",
+          "operation": "modify",
+          "description": "Update stats row with refined metric display, elegant number formatting, and cohesive spacing matching the premium aesthetic"
+        },
+        {
+          "path": "frontend/src/features/home/components/DashboardWidgetsGrid.tsx",
+          "operation": "modify",
+          "description": "Redesign widgets grid with clean card styling, refined spacing, and elegant layout matching reference image designs"
+        },
+        {
+          "path": "frontend/src/features/discovery/components/RecentlyViewedStrip.tsx",
+          "operation": "modify",
+          "description": "Update recently viewed strip with refined horizontal scroll styling, elegant card design, smooth scroll behavior, and cohesive spacing"
+        },
+        {
+          "path": "frontend/src/features/discovery/components/TrendingSection.tsx",
+          "operation": "modify",
+          "description": "Redesign trending section with clean horizontal layout, refined listing cards, and elegant section header matching the new aesthetic"
+        },
+        {
+          "path": "frontend/src/features/discovery/components/RecommendedSection.tsx",
+          "operation": "modify",
+          "description": "Update recommended section with refined styling, clean card layout, and cohesive design matching the premium marketplace feel"
+        },
+        {
+          "path": "frontend/src/features/home/components/PersonalizedListingsPreview.tsx",
+          "operation": "modify",
+          "description": "Refine personalized listings preview with elegant card styling, refined loading states, and smooth transitions matching the sleek design system"
+        }
+      ]
+    },
+    {
+      "id": "REQ-12",
+      "summary": "Redesign listing detail pages with large image carousels, clear pricing and condition display, prominent save and cart actions, seller profile preview, chat button, and integrated safety tips, following the clean product detail layout from the reference images",
+      "acceptanceCriteria": [
+        "Image carousel displays multiple photos with smooth navigation",
+        "Product details laid out cleanly with clear hierarchy",
+        "Save and cart buttons prominent and accessible",
+        "Seller profile card shows rating and verification status",
+        "Chat button easily accessible for buyer-seller communication",
+        "Safety tips banner integrated into layout"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/ListingDetailsPage.tsx",
+          "operation": "modify",
+          "description": "Redesign listing detail page matching the clean product detail layout from image-11.png with refined image carousel, clear pricing and condition display, prominent save/cart actions, elegant seller profile preview card, accessible chat button, and integrated safety tips banner. Use frontend/public/assets/generated/product-placeholder.dim_400x400.png as fallback for missing images. Ensure layout adapts elegantly between mobile and desktop"
+        },
+        {
+          "path": "frontend/src/features/listings/components/ListingImageCarousel.tsx",
+          "operation": "modify",
+          "description": "Update image carousel with refined navigation controls, smooth transitions, elegant pagination indicators, and proper image sizing matching the premium aesthetic"
+        },
+        {
+          "path": "frontend/src/features/trustSafety/safetyTips/SafetyTipsBanner.tsx",
+          "operation": "modify",
+          "description": "Refine safety tips banner styling to integrate seamlessly into listing detail layout with cohesive design and proper spacing"
+        }
+      ]
+    },
+    {
+      "id": "REQ-13",
+      "summary": "Redesign search results page with grid-based listing cards, elegant filtering UI, category browsing chips, and smooth transitions, maintaining the minimalist aesthetic across mobile and desktop",
+      "acceptanceCriteria": [
+        "Listing cards arranged in responsive grid",
+        "Filter controls accessible and intuitive",
+        "Category chips allow quick category switching",
+        "Smooth animations on filter changes and loading states",
+        "Layout adapts elegantly between mobile and desktop"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/SearchPage.tsx",
+          "operation": "modify",
+          "description": "Redesign search results page with responsive grid layout matching reference image styling, refined filter controls, elegant category chips, smooth transitions on filter changes, and cohesive mobile/desktop adaptation"
+        },
+        {
+          "path": "frontend/src/features/listings/components/FiltersBottomSheet.tsx",
+          "operation": "modify",
+          "description": "Refine filters bottom sheet with elegant UI controls, clear filter display, smooth slide-up animation, and cohesive styling matching the new design system"
+        }
+      ]
+    },
+    {
+      "id": "REQ-14",
+      "summary": "Create a visually cohesive design system with a carefully chosen color palette (avoiding blue and purple unless specified), elegant typography hierarchy, consistent spacing scale, and smooth micro-interactions that give the app a premium, polished feel",
+      "acceptanceCriteria": [
+        "Color palette distinct from generic blue/purple schemes",
+        "Typography uses modern, readable font stack with clear hierarchy",
+        "Consistent spacing and border radius across components",
+        "Micro-interactions (hover states, transitions) feel polished",
+        "Design system applied consistently across all pages"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/index.css",
+          "operation": "modify",
+          "description": "Establish design system foundations with warm earth tone color palette (avoiding blue/purple), refined typography scale with modern sans-serif stack, consistent spacing utilities, smooth transition defaults, and polished micro-interaction classes"
+        },
+        {
+          "path": "frontend/tailwind.config.js",
+          "operation": "modify",
+          "description": "Configure Tailwind with design system tokens including warm color palette, refined typography settings, consistent spacing scale, border radius values, and smooth animation presets"
+        },
+        {
+          "path": "frontend/src/components/DesignSystemDemo.tsx",
+          "operation": "create",
+          "description": "Create design system demonstration component showcasing color palette, typography scale, spacing examples, button variants, and micro-interactions for reference during development"
+        }
+      ]
+    }
+  ]
+}

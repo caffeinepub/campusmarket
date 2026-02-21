@@ -1,0 +1,219 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* OKLCH color system - Light mode - Warm Earth Tones */
+    --background: oklch(98% 0.008 85);
+    --foreground: oklch(18% 0.015 30);
+    --card: oklch(100% 0 0);
+    --card-foreground: oklch(18% 0.015 30);
+    --popover: oklch(100% 0 0);
+    --popover-foreground: oklch(18% 0.015 30);
+    --primary: oklch(45% 0.12 35);
+    --primary-foreground: oklch(98% 0.005 35);
+    --secondary: oklch(92% 0.015 75);
+    --secondary-foreground: oklch(22% 0.015 30);
+    --muted: oklch(95% 0.01 75);
+    --muted-foreground: oklch(50% 0.015 30);
+    --accent: oklch(88% 0.08 120);
+    --accent-foreground: oklch(18% 0.015 120);
+    --destructive: oklch(52% 0.18 25);
+    --destructive-foreground: oklch(98% 0.005 25);
+    --success: oklch(58% 0.14 145);
+    --success-foreground: oklch(98% 0.005 145);
+    --warning: oklch(68% 0.14 75);
+    --warning-foreground: oklch(20% 0.015 75);
+    --border: oklch(88% 0.01 75);
+    --input: oklch(88% 0.01 75);
+    --ring: oklch(45% 0.12 35);
+    --radius: 0.75rem;
+  }
+
+  .dark {
+    /* OKLCH color system - Dark mode - Warm Earth Tones */
+    --background: oklch(12% 0.015 30);
+    --foreground: oklch(95% 0.008 75);
+    --card: oklch(15% 0.015 30);
+    --card-foreground: oklch(95% 0.008 75);
+    --popover: oklch(15% 0.015 30);
+    --popover-foreground: oklch(95% 0.008 75);
+    --primary: oklch(55% 0.12 35);
+    --primary-foreground: oklch(12% 0.015 35);
+    --secondary: oklch(22% 0.015 30);
+    --secondary-foreground: oklch(95% 0.008 75);
+    --muted: oklch(22% 0.015 30);
+    --muted-foreground: oklch(58% 0.015 75);
+    --accent: oklch(28% 0.08 120);
+    --accent-foreground: oklch(95% 0.008 120);
+    --destructive: oklch(52% 0.18 25);
+    --destructive-foreground: oklch(98% 0.005 25);
+    --success: oklch(58% 0.14 145);
+    --success-foreground: oklch(12% 0.015 145);
+    --warning: oklch(68% 0.14 75);
+    --warning-foreground: oklch(12% 0.015 75);
+    --border: oklch(25% 0.015 30);
+    --input: oklch(25% 0.015 30);
+    --ring: oklch(55% 0.12 35);
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', 'SF Pro Display', system-ui, sans-serif;
+  }
+}
+
+@layer utilities {
+  /* Interactive utilities with reduced-motion support */
+  .interactive-press {
+    @apply active:scale-[0.97];
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .interactive-press {
+      @apply transition-transform duration-150;
+    }
+  }
+
+  .interactive-glow {
+    @apply hover:shadow-glow;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .interactive-glow {
+      @apply transition-shadow duration-300;
+    }
+  }
+
+  /* Motion-safe animations */
+  @media (prefers-reduced-motion: no-preference) {
+    .motion-safe\:animate-in {
+      animation: fadeIn 0.4s ease-out;
+    }
+
+    .motion-safe\:fade-in {
+      animation: fadeIn 0.4s ease-out;
+    }
+
+    .motion-safe\:slide-in-from-bottom-4 {
+      animation: slideInFromBottom 0.4s ease-out;
+    }
+
+    .motion-safe\:transition-all {
+      transition: all 0.25s ease-out;
+    }
+
+    .motion-safe\:transition-transform {
+      transition: transform 0.25s ease-out;
+    }
+
+    .motion-safe\:transition-colors {
+      transition: colors 0.25s ease-out;
+    }
+
+    .motion-safe\:transition-shadow {
+      transition: box-shadow 0.25s ease-out;
+    }
+
+    .motion-safe\:duration-300 {
+      transition-duration: 300ms;
+    }
+
+    .motion-safe\:hover\:scale-105:hover {
+      transform: scale(1.05);
+    }
+
+    .motion-safe\:hover\:scale-110:hover {
+      transform: scale(1.1);
+    }
+
+    .motion-safe\:hover\:-translate-y-1:hover {
+      transform: translateY(-0.25rem);
+    }
+
+    .motion-safe\:group-hover\:scale-105 {
+      transition: transform 0.3s ease-out;
+    }
+
+    .group:hover .motion-safe\:group-hover\:scale-105 {
+      transform: scale(1.05);
+    }
+  }
+
+  /* Shimmer animation for loading states */
+  .shimmer {
+    background: linear-gradient(
+      90deg,
+      hsl(var(--muted)) 0%,
+      hsl(var(--muted-foreground) / 0.1) 50%,
+      hsl(var(--muted)) 100%
+    );
+    background-size: 200% 100%;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .shimmer {
+      animation: shimmer 1.5s ease-in-out infinite;
+    }
+  }
+
+  @keyframes shimmer {
+    0% {
+      background-position: 200% 0;
+    }
+    100% {
+      background-position: -200% 0;
+    }
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes slideInFromBottom {
+    from {
+      opacity: 0;
+      transform: translateY(1rem);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Marquee animation */
+  @keyframes marquee {
+    0% {
+      transform: translateX(0);
+    }
+    100% {
+      transform: translateX(-50%);
+    }
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .animate-marquee {
+      animation: marquee 20s linear infinite;
+    }
+  }
+
+  /* Defensive style to ensure CursorReactiveLayer canvas cannot render or affect interactions */
+  .cursor-glow-canvas {
+    opacity: 0 !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+    z-index: -9999 !important;
+  }
+}

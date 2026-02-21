@@ -1,0 +1,312 @@
+{
+  "kind": "build_request",
+  "title": "Complete frontend rebuild with sleek marketplace UI",
+  "projectName": "Campus Market",
+  "priority": "high",
+  "requirements": [
+    {
+      "id": "REQ-1",
+      "text": "Redesign the entire frontend with a sleek, minimalist e-commerce aesthetic inspired by the uploaded reference images (image-10.png and image-11.png), featuring clean product cards, smooth navigation, elegant typography, generous white space, and a cohesive visual identity that works seamlessly on both mobile and desktop",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-recent"
+        ],
+        "quotes": [
+          "sleek and smooth and BEAUTIFUL but not overwhelming, remaining exceptionally suer friendly",
+          "rebuild frontend",
+          "mobile and pc both one must not ditch the other"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Mobile UI matches the clean card-based layout and navigation patterns from image-10.png",
+        "Desktop UI reflects the spacious, elegant layout style from image-11.png",
+        "Responsive design adapts smoothly between mobile and desktop breakpoints",
+        "Typography, spacing, and color choices create a premium, cohesive brand feel",
+        "All interactive elements have smooth transitions and hover states"
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "text": "Implement campus verification system supporting both .edu email verification and manual campus selection during onboarding, storing campus affiliation in user profiles",
+      "target": "both",
+      "source": {
+        "messageIds": [
+          "msg-recent"
+        ],
+        "quotes": [
+          "both we'll figure that out layturrrrrrr"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Onboarding flow includes campus selection or email verification step",
+        "Backend validates .edu email domains",
+        "User profile stores verified campus affiliation",
+        "UI clearly indicates verification status"
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "text": "Enable sellers to upload multiple photos per listing (up to 5 images), manage pricing, mark items as sold, and control inventory status with an intuitive listing management interface",
+      "target": "both",
+      "source": {
+        "messageIds": [
+          "msg-recent"
+        ],
+        "quotes": [
+          "multiple photo uploads, pricing, sold status, inventory control"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Listing creation supports uploading up to 5 photos",
+        "Sellers can reorder photos via drag-and-drop",
+        "Sold status can be toggled on listings",
+        "My Listings page shows inventory status clearly"
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "text": "Build advanced search and filtering UI with category-specific filters for campus needs including textbooks, furniture, electronics, clothing, dorm essentials, course materials, and move-out sales, with sort options and price ranges",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-recent"
+        ],
+        "quotes": [
+          "Advanced search & filtering by category (textbooks, furniture, electronics, clothing, etc.)",
+          "Smart categorization with campus-specific needs (dorm essentials, course materials, move-out sales)"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Search page includes category chips for all campus-specific categories",
+        "Filters support price range, condition, and campus location",
+        "Sort options include price, date posted, and relevance",
+        "Filter state persists across page navigation"
+      ]
+    },
+    {
+      "id": "REQ-5",
+      "text": "Create comprehensive user profile pages displaying seller ratings, listing history, verification badges, campus affiliation, and trust indicators",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-recent"
+        ],
+        "quotes": [
+          "User profiles with seller ratings and listing history",
+          "Seller verification badges"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Profile page shows user's active and sold listings",
+        "Seller rating displayed prominently with review count",
+        "Verification badges visible for verified users",
+        "Campus affiliation shown on profile"
+      ]
+    },
+    {
+      "id": "REQ-6",
+      "text": "Implement buyer-seller messaging system with thread-based conversations, typing indicators, read receipts, and quick offer buttons for seamless communication",
+      "target": "both",
+      "source": {
+        "messageIds": [
+          "msg-recent"
+        ],
+        "quotes": [
+          "Messaging system for buyer-seller communication"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Users can initiate chat from listing detail pages",
+        "Chat interface shows typing indicators",
+        "Read receipts indicate when messages are seen",
+        "Quick offer button pre-fills common message templates"
+      ]
+    },
+    {
+      "id": "REQ-7",
+      "text": "Add price suggestion feature that analyzes item condition, category, and comparable listings to recommend optimal pricing when creating or editing listings",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-recent"
+        ],
+        "quotes": [
+          "Price suggestion based on item condition"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Price suggestion appears during listing creation",
+        "Suggestions factor in condition (new, like new, good, fair)",
+        "Suggestions consider category-specific pricing patterns",
+        "Users can accept or override suggested prices"
+      ]
+    },
+    {
+      "id": "REQ-8",
+      "text": "Implement urgent sale tags for end-of-semester listings, allowing sellers to mark listings as time-sensitive and prioritizing them in search results and feeds",
+      "target": "both",
+      "source": {
+        "messageIds": [
+          "msg-recent"
+        ],
+        "quotes": [
+          "Urgent sale tags for end-of-semester listings"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Sellers can toggle 'Urgent Sale' flag on listings",
+        "Urgent sale badge displays prominently on listing cards",
+        "Urgent listings appear higher in search results",
+        "Feed algorithms prioritize urgent sale items"
+      ]
+    },
+    {
+      "id": "REQ-9",
+      "text": "Add campus meetup location suggestions feature that recommends safe, public meeting spots on campus when buyers and sellers arrange transactions",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-recent"
+        ],
+        "quotes": [
+          "Campus meetup location suggestions"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Listing detail or chat UI suggests common campus meetup spots",
+        "Suggestions include library, student center, main quad, etc.",
+        "Users can select from suggested locations in chat",
+        "Safety tips accompany meetup suggestions"
+      ]
+    },
+    {
+      "id": "REQ-10",
+      "text": "Implement saved searches feature allowing users to save search queries with filters and receive notifications when new listings match their saved criteria",
+      "target": "both",
+      "source": {
+        "messageIds": [
+          "msg-recent"
+        ],
+        "quotes": [
+          "Saved searches with notifications"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Users can save current search query and filters",
+        "Saved searches accessible from user profile or search page",
+        "Backend checks new listings against saved searches",
+        "Notifications sent when matches are found"
+      ]
+    },
+    {
+      "id": "REQ-11",
+      "text": "Redesign home page with a premium dashboard layout featuring personalized listing recommendations, quick action cards, recently viewed items strip, trending section, and campus-specific widgets, all styled with the new minimalist aesthetic",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-recent"
+        ],
+        "quotes": [
+          "sleek and smooth and BEAUTIFUL",
+          "rebuild frontend"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Home page uses card-based layout matching reference designs",
+        "Personalized recommendations section displays relevant listings",
+        "Quick actions provide shortcuts to key features",
+        "Recently viewed strip shows horizontal scrollable items",
+        "Design matches premium e-commerce aesthetic from uploaded images"
+      ]
+    },
+    {
+      "id": "REQ-12",
+      "text": "Redesign listing detail pages with large image carousels, clear pricing and condition display, prominent save and cart actions, seller profile preview, chat button, and integrated safety tips, following the clean product detail layout from the reference images",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-recent"
+        ],
+        "quotes": [
+          "rebuild frontend",
+          "BEAUTIFUL but not overwhelming"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Image carousel displays multiple photos with smooth navigation",
+        "Product details laid out cleanly with clear hierarchy",
+        "Save and cart buttons prominent and accessible",
+        "Seller profile card shows rating and verification status",
+        "Chat button easily accessible for buyer-seller communication",
+        "Safety tips banner integrated into layout"
+      ]
+    },
+    {
+      "id": "REQ-13",
+      "text": "Redesign search results page with grid-based listing cards, elegant filtering UI, category browsing chips, and smooth transitions, maintaining the minimalist aesthetic across mobile and desktop",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-recent"
+        ],
+        "quotes": [
+          "rebuild frontend",
+          "sleek and smooth"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Listing cards arranged in responsive grid",
+        "Filter controls accessible and intuitive",
+        "Category chips allow quick category switching",
+        "Smooth animations on filter changes and loading states",
+        "Layout adapts elegantly between mobile and desktop"
+      ]
+    },
+    {
+      "id": "REQ-14",
+      "text": "Create a visually cohesive design system with a carefully chosen color palette (avoiding blue and purple unless specified), elegant typography hierarchy, consistent spacing scale, and smooth micro-interactions that give the app a premium, polished feel",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-recent"
+        ],
+        "quotes": [
+          "BEAUTIFUL but not overwhelming"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Color palette distinct from generic blue/purple schemes",
+        "Typography uses modern, readable font stack with clear hierarchy",
+        "Consistent spacing and border radius across components",
+        "Micro-interactions (hover states, transitions) feel polished",
+        "Design system applied consistently across all pages"
+      ]
+    }
+  ],
+  "constraints": [
+    "Do not edit immutable frontend paths: frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useInternetIdentity.tsx, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, frontend/src/components/ui",
+    "Maintain single-actor Motoko architecture in backend/main.mo",
+    "Use React, TypeScript, Tailwind CSS, and React Query for frontend",
+    "Authentication must use Internet Identity only",
+    "All images must be stored as static assets in frontend/public/assets/generated, not routed through backend"
+  ],
+  "nonGoals": [
+    "Integration with external databases or cloud providers",
+    "Real-time WebSocket features",
+    "Third-party authentication beyond Internet Identity",
+    "Mobile app development (React Native, Flutter)",
+    "Integration with social media APIs",
+    "SMS or push notification services",
+    "Payment gateway integration beyond what's already supported"
+  ],
+  "imageRequirements": {
+    "required": [
+      "Clean minimalist hero banner for home page featuring campus theme with warm neutral tones (hero-banner.dim_1200x400.png)",
+      "Campus marketplace logo icon with modern geometric design in warm earth tones (logo-icon.dim_256x256.png)",
+      "Placeholder product image for listings without photos, simple line art style (product-placeholder.dim_400x400.png)",
+      "Campus building silhouette illustration for onboarding background in muted colors (onboarding-bg.dim_800x600.png)"
+    ],
+    "edits": []
+  }
+}
